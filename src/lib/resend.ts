@@ -1,11 +1,27 @@
-import { Resend } from "resend";
-
 const FROM = process.env.RESEND_FROM ?? "noreply@pinkhousesamui.com";
 
-function getResend(): Resend {
+async function sendEmail(payload: { to: string; subject: string; html: string }): Promise<void> {
   const key = process.env.RESEND_API_KEY;
   if (!key) throw new Error("RESEND_API_KEY is not configured");
-  return new Resend(key);
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${key}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: FROM,
+      to: payload.to,
+      subject: payload.subject,
+      html: payload.html,
+    }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Resend error ${res.status}: ${text}`);
+  }
 }
 
 export async function sendBookingConfirmation(data: {
@@ -16,8 +32,7 @@ export async function sendBookingConfirmation(data: {
   checkOut: string;
   guests: number;
 }): Promise<void> {
-  await getResend().emails.send({
-    from: FROM,
+  await sendEmail({
     to: data.to,
     subject: "Booking Request Received — Pink House Koh Samui",
     html: `
@@ -35,8 +50,7 @@ export async function sendBookingConfirmation(data: {
 }
 
 export async function sendContactReply(data: { to: string; name: string }): Promise<void> {
-  await getResend().emails.send({
-    from: FROM,
+  await sendEmail({
     to: data.to,
     subject: "We received your message — Pink House Koh Samui",
     html: `
