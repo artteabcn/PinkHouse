@@ -1,8 +1,12 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const FROM = process.env.RESEND_FROM ?? "noreply@pinkhousesamui.com";
+
+function getResend(): Resend {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) throw new Error("RESEND_API_KEY is not configured");
+  return new Resend(key);
+}
 
 export async function sendBookingConfirmation(data: {
   to: string;
@@ -12,7 +16,7 @@ export async function sendBookingConfirmation(data: {
   checkOut: string;
   guests: number;
 }): Promise<void> {
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: data.to,
     subject: "Booking Request Received — Pink House Koh Samui",
@@ -31,7 +35,7 @@ export async function sendBookingConfirmation(data: {
 }
 
 export async function sendContactReply(data: { to: string; name: string }): Promise<void> {
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: data.to,
     subject: "We received your message — Pink House Koh Samui",
