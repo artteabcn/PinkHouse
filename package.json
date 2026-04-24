@@ -17,6 +17,7 @@
     "db:migrate": "wrangler d1 migrations apply pinkhouse --remote",
     "db:migrate:local": "wrangler d1 migrations apply pinkhouse --local",
     "db:studio": "drizzle-kit studio",
+    "build:cf": "opennextjs-cloudflare build",
     "deploy": "opennextjs-cloudflare build && wrangler pages deploy",
     "preview": "opennextjs-cloudflare build && wrangler pages dev",
     "prepare": "husky"
