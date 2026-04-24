@@ -86,6 +86,7 @@ Three room types (IDs used as enum values in Zod schema and DB):
 | File                             | Purpose                                     |
 | -------------------------------- | ------------------------------------------- |
 | `src/db/schema.ts`               | Drizzle schema — bookings + contacts tables |
+| `src/middleware.ts`              | next-intl edge middleware (i18n routing)    |
 | `src/lib/whatsapp.ts`            | Twilio WhatsApp notifications               |
 | `src/lib/resend.ts`              | Resend email confirmations                  |
 | `src/lib/validations/booking.ts` | Zod schema for bookings                     |
@@ -107,3 +108,7 @@ When Claude is corrected:
 3. Note with `# Added: [date] — [reason]`
 
 # Added: 2026-04-24 — Use @opennextjs/cloudflare (not @cloudflare/next-on-pages — deprecated and incompatible with Next 16)
+
+# Added: 2026-04-24 — Middleware must be src/middleware.ts (edge runtime). Next.js 16 deprecated this in favour of proxy.ts but OpenNext requires edge; proxy.ts is Node.js-only and rejected by OpenNext.
+
+# Added: 2026-04-24 — open-next.config.ts must use defineCloudflareConfig() from @opennextjs/cloudflare, not a manual config object (edgeExternals is not a typed property on OpenNextConfig).
