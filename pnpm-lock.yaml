@@ -44,9 +44,6 @@ importers:
       react-hook-form:
         specifier: ^7.73.1
         version: 7.73.1(react@19.2.5)
-      sharp:
-        specifier: ^0.34.5
-        version: 0.34.5
       tailwind-merge:
         specifier: ^3.5.0
         version: 3.5.0
