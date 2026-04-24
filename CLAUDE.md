@@ -46,10 +46,11 @@ Design reference: Orchid Lodge Samui (orchidlodgesamui.com) — luxury boutique 
 
 ## Deployment
 
-- **Hosting**: Cloudflare Pages via OpenNext (`@opennextjs/cloudflare`)
+- **Hosting**: Cloudflare Workers via OpenNext (`@opennextjs/cloudflare`)
 - **Adapter**: `open-next.config.ts` — NOT `@cloudflare/next-on-pages` (deprecated, incompatible with Next 16)
 - **Database**: Cloudflare D1 — binding name `DB` (see `wrangler.toml`)
-- **Build**: `pnpm run build` → `pnpm run deploy` (via wrangler pages deploy)
+- **Worker entry**: `.open-next/worker.js`; static assets: `.open-next/assets` (via `[assets]` binding)
+- **Build**: `pnpm run build:cf` — deploy via `wrangler deploy`
 
 ---
 
