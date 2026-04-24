@@ -1,0 +1,157 @@
+{
+  "nav": {
+    "about": "À propos",
+    "rooms": "Chambres",
+    "amenities": "Équipements",
+    "gallery": "Galerie",
+    "contact": "Contact",
+    "bookNow": "Réserver"
+  },
+  "hero": {
+    "tagline": "Votre maison à Koh Samui",
+    "headline": "Pink House",
+    "subheadline": "Une chambre d'hôtes chaleureuse et accueillante au cœur de Koh Samui, Thaïlande.",
+    "cta": "Réserver votre séjour",
+    "discover": "Découvrir"
+  },
+  "about": {
+    "label": "Notre histoire",
+    "title": "Un chez-soi loin de chez soi",
+    "p1": "Pink House est une charmante chambre d'hôtes sur la magnifique île de Koh Samui, en Thaïlande. Nous proposons des chambres confortables, une atmosphère chaleureuse et un service personnalisé en anglais, français, allemand et thaï.",
+    "p2": "Que vous soyez là pour une courte escapade ou un long séjour, notre équipe est dédiée à rendre chaque moment de votre visite inoubliable. Réveillez-vous avec un petit-déjeuner frais, plongez dans la piscine et laissez la magie de l'île faire le reste.",
+    "stat1Value": "10+",
+    "stat1Label": "Années d'accueil",
+    "stat2Value": "4",
+    "stat2Label": "Langues parlées",
+    "stat3Value": "100%",
+    "stat3Label": "Service personnalisé"
+  },
+  "rooms": {
+    "label": "Hébergement",
+    "title": "Nos Chambres",
+    "subtitle": "Chaque chambre est aménagée avec soin pour allier confort, style et l'esprit décontracté de la vie insulaire.",
+    "perNight": "/ nuit",
+    "from": "À partir de",
+    "guests": "personnes",
+    "book": "Réserver cette chambre",
+    "items": [
+      {
+        "id": "standard",
+        "name": "Chambre Standard",
+        "description": "Cosy et lumineuse, notre chambre standard dispose d'un lit queen size, d'une salle de bain privative, de la climatisation et d'un balcon privé avec vue sur le jardin tropical.",
+        "price": 1800,
+        "currency": "THB",
+        "maxGuests": 2,
+        "beds": "1 lit Queen",
+        "view": "Vue jardin"
+      },
+      {
+        "id": "deluxe",
+        "name": "Chambre Deluxe",
+        "description": "Spacieuse et élégante avec un lit king size, du linge de qualité supérieure, une douche à effet pluie et une terrasse avec vue sur la piscine — idéale pour les couples.",
+        "price": 2600,
+        "currency": "THB",
+        "maxGuests": 2,
+        "beds": "1 lit King",
+        "view": "Vue piscine"
+      },
+      {
+        "id": "family",
+        "name": "Suite Familiale",
+        "description": "Notre plus grand hébergement avec deux chambres, un salon, une kitchenette et une terrasse privée — idéal pour les familles ou les groupes d'amis.",
+        "price": 4200,
+        "currency": "THB",
+        "maxGuests": 4,
+        "beds": "2 chambres",
+        "view": "Vue jardin & piscine"
+      }
+    ]
+  },
+  "amenities": {
+    "label": "Équipements",
+    "title": "Tout ce dont vous avez besoin",
+    "subtitle": "Tout le confort d'un chez-soi, avec la chaleur d'une maison d'hôtes boutique.",
+    "items": [
+      {
+        "icon": "pool",
+        "title": "Piscine",
+        "desc": "Piscine extérieure ouverte tous les jours de 7h à 21h"
+      },
+      {
+        "icon": "wifi",
+        "title": "Wi-Fi gratuit",
+        "desc": "Internet haut débit dans toute la propriété"
+      },
+      {
+        "icon": "ac",
+        "title": "Climatisation",
+        "desc": "Contrôle individuel du climat dans chaque chambre"
+      },
+      {
+        "icon": "breakfast",
+        "title": "Petit-déjeuner inclus",
+        "desc": "Petit-déjeuner frais quotidien avec options locales et occidentales"
+      },
+      {
+        "icon": "whatsapp",
+        "title": "Support WhatsApp",
+        "desc": "Contactez-nous à tout moment via WhatsApp"
+      },
+      { "icon": "transfer", "title": "Transfert aéroport", "desc": "Navette pratique sur demande" },
+      {
+        "icon": "cleaning",
+        "title": "Ménage quotidien",
+        "desc": "Chambres entretenues chaque matin"
+      },
+      {
+        "icon": "languages",
+        "title": "Personnel multilingue",
+        "desc": "Assistance en anglais, français, allemand et thaï"
+      }
+    ]
+  },
+  "gallery": {
+    "label": "Galerie",
+    "title": "La vie au Pink House"
+  },
+  "contact": {
+    "label": "Nous trouver",
+    "title": "Contactez-nous",
+    "subtitle": "Nous serions ravis de vous entendre. Contactez-nous par WhatsApp, e-mail ou via le formulaire ci-dessous.",
+    "address": "123 Moo 4, Bophut, Koh Samui, Surat Thani 84320, Thaïlande",
+    "phone": "+66 77 XXX XXX",
+    "email": "hello@pinkhousesamui.com",
+    "whatsapp": "Discuter sur WhatsApp",
+    "form": {
+      "name": "Votre nom",
+      "email": "Adresse e-mail",
+      "phone": "Téléphone / WhatsApp",
+      "message": "Message",
+      "submit": "Envoyer le message",
+      "sending": "Envoi en cours...",
+      "success": "Message envoyé ! Nous répondrons dans les 24 heures.",
+      "error": "Une erreur s'est produite. Veuillez réessayer ou nous contacter directement."
+    }
+  },
+  "footer": {
+    "tagline": "Votre maison à Koh Samui.",
+    "links": "Liens rapides",
+    "legal": "© {year} Pink House Koh Samui. Tous droits réservés.",
+    "privacy": "Politique de confidentialité"
+  },
+  "booking": {
+    "title": "Réserver votre séjour",
+    "checkIn": "Arrivée",
+    "checkOut": "Départ",
+    "guests": "Personnes",
+    "room": "Type de chambre",
+    "name": "Nom complet",
+    "email": "E-mail",
+    "phone": "Téléphone / WhatsApp",
+    "notes": "Demandes spéciales",
+    "submit": "Demander une réservation",
+    "sending": "Envoi...",
+    "success": "Demande de réservation reçue ! Nous confirmerons dans les 24 heures.",
+    "error": "Une erreur s'est produite. Veuillez nous contacter directement."
+  }
+}

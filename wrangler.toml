@@ -1,0 +1,14 @@
+name = "pinkhouse"
+compatibility_date = "2025-04-01"
+compatibility_flags = ["nodejs_compat"]
+
+pages_build_output_dir = ".open-next/assets"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "pinkhouse"
+database_id = "cdcfa781-8317-4e85-87fe-6579d0671b81"
+migrations_dir = "drizzle"
+
+[dev]
+port = 8788
