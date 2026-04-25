@@ -114,6 +114,27 @@
     "label": "Galerie",
     "title": "La vie au Pink House"
   },
+  "testimonials": {
+    "label": "Avis clients",
+    "title": "Des souvenirs qui durent",
+    "items": [
+      {
+        "quote": "Séjourner au Pink House a été le point fort de notre voyage à Koh Samui. La chaleur des hôtes et le jardin magnifique nous ont tout de suite mis à l'aise.",
+        "name": "Sophie & Marc",
+        "origin": "Lyon, France"
+      },
+      {
+        "quote": "Le B&B le plus charmant que nous ayons jamais visité. Le petit-déjeuner était exceptionnel, la chambre impeccable et l'emplacement parfait pour explorer l'île.",
+        "name": "James & Karen",
+        "origin": "Londres, Royaume-Uni"
+      },
+      {
+        "quote": "Nous y sommes revenus pour la troisième fois cette année — cela dit tout. Le Pink House n'est pas seulement un endroit où dormir, c'est un endroit où l'on se sent chez soi.",
+        "name": "Thomas",
+        "origin": "Munich, Allemagne"
+      }
+    ]
+  },
   "contact": {
     "label": "Nous trouver",
     "title": "Contactez-nous",

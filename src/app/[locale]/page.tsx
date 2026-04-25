@@ -6,6 +6,7 @@ import AboutSection from "@/components/AboutSection";
 import RoomsSection from "@/components/RoomsSection";
 import AmenitiesSection from "@/components/AmenitiesSection";
 import GalleryGrid from "@/components/GalleryGrid";
+import TestimonialsSection from "@/components/TestimonialsSection";
 import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
@@ -29,6 +30,7 @@ export default function HomePage(): React.JSX.Element {
       <AboutSection />
       <RoomsSection />
       <AmenitiesSection />
+      <TestimonialsSection />
       <GalleryGrid />
       <ContactSection />
       <Footer />

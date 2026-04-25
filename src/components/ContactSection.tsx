@@ -45,8 +45,8 @@ export default function ContactSection(): React.JSX.Element {
   ];
 
   return (
-    <section id="contact" className="bg-white py-24">
-      <div className="mx-auto max-w-7xl px-6">
+    <section id="contact" className="bg-brand-cream py-32">
+      <div className="mx-auto max-w-7xl px-8">
         <div className="text-center">
           <p className="section-label">{t("label")}</p>
           <h2 className="section-title mt-3">{t("title")}</h2>
@@ -58,8 +58,8 @@ export default function ContactSection(): React.JSX.Element {
           <div className="flex flex-col gap-8">
             {contactItems.map(({ icon: Icon, label, href }) => (
               <div key={label} className="flex items-start gap-4">
-                <div className="bg-brand-pink-light flex h-11 w-11 shrink-0 items-center justify-center rounded-xl">
-                  <Icon className="text-brand-pink-dark size-5" />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center">
+                  <Icon className="text-brand-pink size-5" />
                 </div>
                 {href ? (
                   <a href={href} className="hover:text-brand-pink mt-1 text-gray-700">
@@ -76,14 +76,14 @@ export default function ContactSection(): React.JSX.Element {
               href="https://wa.me/6677000000"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex w-fit items-center gap-3 rounded-full bg-[#25D366] px-6 py-3 font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+              className="flex w-fit items-center gap-3 bg-[#25D366] px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
             >
               <MessageCircle className="size-5" />
               {t("whatsapp")}
             </a>
 
             {/* Map embed placeholder */}
-            <div className="bg-brand-sage-light mt-2 h-56 overflow-hidden rounded-2xl">
+            <div className="bg-brand-sage-light mt-2 h-56 overflow-hidden">
               <iframe
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15807.06!2d100.0541465!3d9.4740216!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zOcKwMjgnMjYuNSJOIDEwMMKwMDMnMTUuMCJF!5e0!3m2!1sen!2sth!4v1700000000000"
                 width="100%"
@@ -104,7 +104,7 @@ export default function ContactSection(): React.JSX.Element {
                 {...register("name")}
                 placeholder={tf("name")}
                 className={cn(
-                  "focus:border-brand-pink w-full rounded-xl border px-4 py-3 text-sm transition-colors outline-none",
+                  "focus:border-brand-pink w-full border bg-white px-4 py-3 text-sm transition-colors outline-none",
                   errors.name ? "border-red-400" : "border-gray-200"
                 )}
               />
@@ -117,7 +117,7 @@ export default function ContactSection(): React.JSX.Element {
                 type="email"
                 placeholder={tf("email")}
                 className={cn(
-                  "focus:border-brand-pink w-full rounded-xl border px-4 py-3 text-sm transition-colors outline-none",
+                  "focus:border-brand-pink w-full border bg-white px-4 py-3 text-sm transition-colors outline-none",
                   errors.email ? "border-red-400" : "border-gray-200"
                 )}
               />
@@ -128,7 +128,7 @@ export default function ContactSection(): React.JSX.Element {
               <input
                 {...register("phone")}
                 placeholder={tf("phone")}
-                className="focus:border-brand-pink w-full rounded-xl border border-gray-200 px-4 py-3 text-sm transition-colors outline-none"
+                className="focus:border-brand-pink w-full border border-gray-200 bg-white px-4 py-3 text-sm transition-colors outline-none"
               />
             </div>
 
@@ -138,7 +138,7 @@ export default function ContactSection(): React.JSX.Element {
                 rows={5}
                 placeholder={tf("message")}
                 className={cn(
-                  "focus:border-brand-pink w-full resize-none rounded-xl border px-4 py-3 text-sm transition-colors outline-none",
+                  "focus:border-brand-pink w-full resize-none border bg-white px-4 py-3 text-sm transition-colors outline-none",
                   errors.message ? "border-red-400" : "border-gray-200"
                 )}
               />
@@ -159,7 +159,7 @@ export default function ContactSection(): React.JSX.Element {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="bg-brand-pink hover:bg-brand-pink-dark rounded-full px-8 py-3 font-semibold text-white shadow-sm transition-colors disabled:opacity-60"
+              className="bg-brand-pink hover:bg-brand-pink-dark px-8 py-3 text-sm font-semibold tracking-wide text-white transition-colors disabled:opacity-60"
             >
               {isSubmitting ? tf("sending") : tf("submit")}
             </button>

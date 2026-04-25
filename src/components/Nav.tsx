@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 import { useState, useEffect } from "react";
@@ -32,25 +32,32 @@ export default function Nav(): React.JSX.Element {
   return (
     <header
       className={cn(
-        "fixed inset-x-0 top-0 z-50 transition-all duration-300",
-        scrolled ? "bg-brand-cream/95 shadow-sm backdrop-blur-sm" : "bg-transparent"
+        "fixed inset-x-0 top-0 z-50 transition-all duration-500",
+        scrolled ? "border-b border-gray-100 bg-white" : "bg-transparent"
       )}
     >
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-8 py-5">
         {/* Logo */}
-        <Link href="#" className="flex items-center gap-2">
-          <span className="text-brand-pink font-serif text-2xl font-bold">Pink House</span>
+        <Link href="#">
+          <span
+            className={cn(
+              "font-serif text-2xl tracking-wide italic transition-colors",
+              scrolled ? "text-brand-charcoal" : "text-white"
+            )}
+          >
+            Pink House
+          </span>
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden items-center gap-6 md:flex">
+        <nav className="hidden items-center gap-8 md:flex">
           {links.map(({ href, label }) => (
             <a
               key={href}
               href={href}
               className={cn(
-                "hover:text-brand-pink text-sm font-medium transition-colors",
-                scrolled ? "text-brand-charcoal" : "text-white/90"
+                "hover:text-brand-pink text-[11px] font-medium tracking-[0.15em] uppercase transition-colors",
+                scrolled ? "text-brand-charcoal" : "text-white/80"
               )}
             >
               {label}
@@ -58,18 +65,23 @@ export default function Nav(): React.JSX.Element {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-4 md:flex">
+        <div className="hidden items-center gap-5 md:flex">
           <LanguageSelector />
           <a
             href="#contact"
-            className="bg-brand-pink hover:bg-brand-pink-dark rounded-full px-5 py-2 text-sm font-semibold text-white shadow-sm transition-colors"
+            className={cn(
+              "border px-5 py-2.5 text-[11px] font-semibold tracking-[0.15em] uppercase transition-colors",
+              scrolled
+                ? "border-brand-charcoal text-brand-charcoal hover:bg-brand-charcoal hover:text-white"
+                : "hover:text-brand-charcoal border-white/70 text-white hover:bg-white"
+            )}
           >
             {t("bookNow")}
           </a>
         </div>
 
         {/* Mobile menu button */}
-        <button className="md:hidden" onClick={() => setOpen(!open)} aria-label="Toggle menu">
+        <button className="p-1 md:hidden" onClick={() => setOpen(!open)} aria-label="Toggle menu">
           {open ? (
             <X className="text-brand-charcoal size-6" />
           ) : (
@@ -80,24 +92,24 @@ export default function Nav(): React.JSX.Element {
 
       {/* Mobile menu */}
       {open && (
-        <div className="border-brand-sage-light bg-brand-cream border-t px-6 py-4 md:hidden">
-          <nav className="flex flex-col gap-4">
+        <div className="border-t border-gray-100 bg-white px-8 py-6 md:hidden">
+          <nav className="flex flex-col gap-5">
             {links.map(({ href, label }) => (
               <a
                 key={href}
                 href={href}
-                className="text-brand-charcoal hover:text-brand-pink text-sm font-medium"
+                className="text-brand-charcoal hover:text-brand-pink text-[11px] font-medium tracking-[0.15em] uppercase"
                 onClick={() => setOpen(false)}
               >
                 {label}
               </a>
             ))}
-            <div className="pt-2">
+            <div className="pt-1">
               <LanguageSelector />
             </div>
             <a
               href="#contact"
-              className="bg-brand-pink mt-2 rounded-full px-5 py-2 text-center text-sm font-semibold text-white"
+              className="border-brand-charcoal text-brand-charcoal mt-1 border px-5 py-3 text-center text-[11px] font-semibold tracking-[0.15em] uppercase"
               onClick={() => setOpen(false)}
             >
               {t("bookNow")}

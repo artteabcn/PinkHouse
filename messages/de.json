@@ -118,6 +118,27 @@
     "label": "Galerie",
     "title": "Leben im Pink House"
   },
+  "testimonials": {
+    "label": "Gästebewertungen",
+    "title": "Erinnerungen, die bleiben",
+    "items": [
+      {
+        "quote": "Der Aufenthalt im Pink House war das Highlight unserer Koh-Samui-Reise. Die Herzlichkeit der Gastgeber und der wunderschöne Garten haben uns sofort heimisch fühlen lassen.",
+        "name": "Sophie & Marc",
+        "origin": "Lyon, Frankreich"
+      },
+      {
+        "quote": "Das charmanteste B&B, das wir je besucht haben. Das Frühstück war außergewöhnlich, das Zimmer makellos und die Lage ideal, um die Insel zu erkunden.",
+        "name": "James & Karen",
+        "origin": "London, Vereinigtes Königreich"
+      },
+      {
+        "quote": "Wir sind dieses Jahr zum dritten Mal zurückgekehrt — das sagt alles. Das Pink House ist nicht nur ein Ort zum Schlafen, es ist ein Ort, an dem man sich zugehörig fühlt.",
+        "name": "Thomas",
+        "origin": "München, Deutschland"
+      }
+    ]
+  },
   "contact": {
     "label": "So finden Sie uns",
     "title": "Kontaktieren Sie uns",

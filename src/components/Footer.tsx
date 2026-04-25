@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { useTranslations } from "next-intl";
 
 export default function Footer(): React.JSX.Element {
@@ -15,26 +15,26 @@ export default function Footer(): React.JSX.Element {
   ];
 
   return (
-    <footer className="bg-brand-charcoal py-16 text-white">
-      <div className="mx-auto max-w-7xl px-6">
-        <div className="grid gap-10 md:grid-cols-3">
+    <footer className="bg-brand-charcoal py-20 text-white">
+      <div className="mx-auto max-w-7xl px-8">
+        <div className="grid gap-12 md:grid-cols-3">
           {/* Brand */}
           <div>
-            <p className="text-brand-pink font-serif text-2xl font-bold">Pink House</p>
-            <p className="mt-2 text-sm text-white/60">{t("tagline")}</p>
+            <p className="font-serif text-2xl text-white italic">Pink House</p>
+            <p className="mt-3 max-w-xs text-sm leading-7 text-white/45">{t("tagline")}</p>
           </div>
 
           {/* Links */}
           <div>
-            <p className="mb-4 text-xs font-semibold tracking-widest text-white/40 uppercase">
+            <p className="mb-5 text-[10px] font-semibold tracking-[0.2em] text-white/30 uppercase">
               {t("links")}
             </p>
-            <nav className="flex flex-col gap-2">
+            <nav className="flex flex-col gap-3">
               {links.map(({ href, label }) => (
                 <a
                   key={href}
                   href={href}
-                  className="hover:text-brand-pink text-sm text-white/70 transition-colors"
+                  className="text-sm text-white/55 transition-colors hover:text-white"
                 >
                   {label}
                 </a>
@@ -42,20 +42,22 @@ export default function Footer(): React.JSX.Element {
             </nav>
           </div>
 
-          {/* Contact snippet */}
+          {/* Contact */}
           <div>
-            <p className="mb-4 text-xs font-semibold tracking-widest text-white/40 uppercase">
+            <p className="mb-5 text-[10px] font-semibold tracking-[0.2em] text-white/30 uppercase">
               Contact
             </p>
-            <p className="text-sm text-white/70">hello@pinkhousesamui.com</p>
-            <p className="mt-1 text-sm text-white/70">+66 77 XXX XXX</p>
-            <p className="mt-1 text-sm text-white/70">Bophut, Koh Samui, Thailand</p>
+            <div className="flex flex-col gap-2.5 text-sm text-white/55">
+              <p>hello@pinkhousesamui.com</p>
+              <p>+66 77 XXX XXX</p>
+              <p>Bophut, Koh Samui, Thailand</p>
+            </div>
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 text-xs text-white/40 md:flex-row">
+        <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 text-xs text-white/30 md:flex-row">
           <p>{t("legal", { year })}</p>
-          <a href="#" className="hover:text-white/70">
+          <a href="#" className="transition-colors hover:text-white/60">
             {t("privacy")}
           </a>
         </div>

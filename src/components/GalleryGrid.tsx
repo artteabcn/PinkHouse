@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 
@@ -35,22 +35,22 @@ export default function GalleryGrid(): React.JSX.Element {
   const t = useTranslations("gallery");
 
   return (
-    <section id="gallery" className="bg-brand-cream py-24">
-      <div className="mx-auto max-w-7xl px-6">
+    <section id="gallery" className="bg-white py-32">
+      <div className="mx-auto max-w-7xl px-8">
         <div className="text-center">
           <p className="section-label">{t("label")}</p>
           <h2 className="section-title mt-3">{t("title")}</h2>
         </div>
 
-        <div className="mt-12 columns-2 gap-4 md:columns-3">
+        <div className="mt-14 columns-2 gap-3 md:columns-3">
           {GALLERY_IMAGES.map(({ src, alt, tall }) => (
-            <div key={src} className="mb-4 break-inside-avoid overflow-hidden rounded-xl">
+            <div key={src} className="mb-3 break-inside-avoid overflow-hidden">
               <div className={`relative w-full ${tall ? "aspect-[3/4]" : "aspect-square"}`}>
                 <Image
                   src={src}
                   alt={alt}
                   fill
-                  className="object-cover transition-transform duration-500 hover:scale-105"
+                  className="object-cover transition-transform duration-700 hover:scale-105"
                   sizes="(max-width: 768px) 50vw, 33vw"
                 />
               </div>

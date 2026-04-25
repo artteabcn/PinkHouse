@@ -1,16 +1,14 @@
-﻿import React from "react";
+import React from "react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
-import { ChevronDown } from "lucide-react";
 
 export default function HeroSection(): React.JSX.Element {
   const t = useTranslations("hero");
 
   return (
-    <section className="relative flex h-screen min-h-[600px] items-center justify-center overflow-hidden">
-      {/* Background image */}
+    <section className="relative flex h-screen min-h-[640px] items-center justify-center overflow-hidden">
       <Image
-        src="https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1920&q=80"
+        src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=1920&q=80"
         alt="Pink House Koh Samui"
         fill
         priority
@@ -18,42 +16,33 @@ export default function HeroSection(): React.JSX.Element {
         sizes="100vw"
       />
 
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/60" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/55" />
 
-      {/* Content */}
       <div className="relative z-10 px-6 text-center text-white">
-        <p className="text-brand-pink-light mb-4 text-sm font-semibold tracking-[0.3em] uppercase">
-          {t("tagline")}
+        <p className="mb-6 text-[10px] font-medium tracking-[0.4em] text-white/60 uppercase">
+          Bophut · Koh Samui · Thailand
         </p>
-        <h1 className="font-serif text-6xl font-bold drop-shadow-lg md:text-8xl">
+        <h1 className="font-serif text-7xl font-bold tracking-tight drop-shadow-sm md:text-[9rem] lg:text-[10rem]">
           {t("headline")}
         </h1>
-        <p className="mx-auto mt-6 max-w-xl text-lg text-white/85 md:text-xl">{t("subheadline")}</p>
-        <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+        <p className="mx-auto mt-8 max-w-md text-base text-white/70 md:text-lg">
+          {t("subheadline")}
+        </p>
+        <div className="mt-12">
           <a
             href="#contact"
-            className="bg-brand-pink hover:bg-brand-pink-dark rounded-full px-8 py-3 text-base font-semibold text-white shadow-lg transition-colors"
+            className="hover:text-brand-charcoal inline-block border border-white/60 px-10 py-4 text-[11px] font-semibold tracking-[0.2em] text-white uppercase backdrop-blur-sm transition-colors hover:bg-white"
           >
             {t("cta")}
-          </a>
-          <a
-            href="#about"
-            className="rounded-full border border-white/60 px-8 py-3 text-base font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/10"
-          >
-            {t("discover")}
           </a>
         </div>
       </div>
 
       {/* Scroll indicator */}
-      <a
-        href="#about"
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/70 transition-colors hover:text-white"
-        aria-label="Scroll down"
-      >
-        <ChevronDown className="size-8 animate-bounce" />
-      </a>
+      <div className="absolute bottom-10 left-1/2 flex -translate-x-1/2 flex-col items-center gap-3">
+        <span className="text-[9px] tracking-[0.3em] text-white/40 uppercase">Scroll</span>
+        <div className="h-14 w-px animate-pulse bg-white/25" />
+      </div>
     </section>
   );
 }
