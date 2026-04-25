@@ -2,7 +2,6 @@ import React from "react";
 import type { Metadata } from "next";
 import Nav from "@/components/Nav";
 import HeroSection from "@/components/HeroSection";
-import AboutSection from "@/components/AboutSection";
 import RoomsSection from "@/components/RoomsSection";
 import AmenitiesSection from "@/components/AmenitiesSection";
 import GalleryGrid from "@/components/GalleryGrid";
@@ -27,7 +26,6 @@ export default function HomePage(): React.JSX.Element {
     <main>
       <Nav />
       <HeroSection />
-      <AboutSection />
       <RoomsSection />
       <AmenitiesSection />
       <TestimonialsSection />

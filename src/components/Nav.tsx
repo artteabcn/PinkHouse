@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useState, useEffect } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,7 @@ import LanguageSelector from "./LanguageSelector";
 
 export default function Nav(): React.JSX.Element {
   const t = useTranslations("nav");
+  const locale = useLocale();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -21,8 +22,9 @@ export default function Nav(): React.JSX.Element {
     return (): void => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const bookHref = `/${locale}/book`;
+
   const links = [
-    { href: "#about", label: t("about") },
     { href: "#rooms", label: t("rooms") },
     { href: "#amenities", label: t("amenities") },
     { href: "#gallery", label: t("gallery") },
@@ -67,8 +69,8 @@ export default function Nav(): React.JSX.Element {
 
         <div className="hidden items-center gap-5 md:flex">
           <LanguageSelector />
-          <a
-            href="#contact"
+          <Link
+            href={bookHref}
             className={cn(
               "border px-5 py-2.5 text-[11px] font-semibold tracking-[0.15em] uppercase transition-colors",
               scrolled
@@ -77,7 +79,7 @@ export default function Nav(): React.JSX.Element {
             )}
           >
             {t("bookNow")}
-          </a>
+          </Link>
         </div>
 
         {/* Mobile menu button */}
@@ -107,13 +109,13 @@ export default function Nav(): React.JSX.Element {
             <div className="pt-1">
               <LanguageSelector />
             </div>
-            <a
-              href="#contact"
+            <Link
+              href={bookHref}
               className="border-brand-charcoal text-brand-charcoal mt-1 border px-5 py-3 text-center text-[11px] font-semibold tracking-[0.15em] uppercase"
               onClick={() => setOpen(false)}
             >
               {t("bookNow")}
-            </a>
+            </Link>
           </nav>
         </div>
       )}

@@ -160,6 +160,11 @@
     "legal": "© {year} Pink House Koh Samui. All rights reserved.",
     "privacy": "Privacy Policy"
   },
+  "bookPage": {
+    "label": "Reservations",
+    "title": "Book Your Stay",
+    "subtitle": "Check availability and reserve your room directly. Best rates guaranteed — no booking fees."
+  },
   "booking": {
     "title": "Book Your Stay",
     "checkIn": "Check-in",
