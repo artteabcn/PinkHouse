@@ -4,6 +4,7 @@ import React from "react";
 import { useState, useEffect } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import LanguageSelector from "./LanguageSelector";
@@ -11,24 +12,33 @@ import LanguageSelector from "./LanguageSelector";
 export default function Nav(): React.JSX.Element {
   const t = useTranslations("nav");
   const locale = useLocale();
+  const pathname = usePathname();
+  const isHome = pathname === `/${locale}`;
+
   const [open, setOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  // On non-home pages there is no dark hero image, so always show the opaque nav.
+  const [scrolled, setScrolled] = useState(!isHome);
 
   useEffect(() => {
+    if (!isHome) return;
     function onScroll(): void {
       setScrolled(window.scrollY > 60);
     }
     window.addEventListener("scroll", onScroll, { passive: true });
     return (): void => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [isHome]);
 
+  const homeHref = `/${locale}`;
   const bookHref = `/${locale}/book`;
+  // When not on the homepage, anchor links must include the locale prefix so
+  // clicking "Rooms" navigates back to the homepage and scrolls there.
+  const anchorBase = isHome ? "" : homeHref;
 
   const links = [
-    { href: "#rooms", label: t("rooms") },
-    { href: "#amenities", label: t("amenities") },
-    { href: "#gallery", label: t("gallery") },
-    { href: "#contact", label: t("contact") },
+    { href: `${anchorBase}#rooms`, label: t("rooms") },
+    { href: `${anchorBase}#amenities`, label: t("amenities") },
+    { href: `${anchorBase}#gallery`, label: t("gallery") },
+    { href: `${anchorBase}#contact`, label: t("contact") },
   ];
 
   return (
@@ -40,7 +50,7 @@ export default function Nav(): React.JSX.Element {
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-8 py-5">
         {/* Logo */}
-        <Link href="#">
+        <Link href={homeHref}>
           <span
             className={cn(
               "font-serif text-2xl tracking-wide italic transition-colors",

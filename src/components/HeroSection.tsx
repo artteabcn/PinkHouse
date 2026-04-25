@@ -1,9 +1,10 @@
 import React from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import Image from "next/image";
 
 export default function HeroSection(): React.JSX.Element {
   const t = useTranslations("hero");
+  const locale = useLocale();
 
   return (
     <section className="relative flex h-screen min-h-[640px] items-center justify-center overflow-hidden">
@@ -30,7 +31,7 @@ export default function HeroSection(): React.JSX.Element {
         </p>
         <div className="mt-12">
           <a
-            href="#contact"
+            href={`/${locale}/book`}
             className="hover:text-brand-charcoal inline-block border border-white/60 px-10 py-4 text-[11px] font-semibold tracking-[0.2em] text-white uppercase backdrop-blur-sm transition-colors hover:bg-white"
           >
             {t("cta")}

@@ -1,5 +1,5 @@
 import React from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import Image from "next/image";
 import { Users, BedDouble, Eye } from "lucide-react";
 
@@ -22,6 +22,7 @@ interface RoomItem {
 
 export default function RoomsSection(): React.JSX.Element {
   const t = useTranslations("rooms");
+  const locale = useLocale();
   const rooms = t.raw("items") as RoomItem[];
 
   return (
@@ -81,7 +82,7 @@ export default function RoomsSection(): React.JSX.Element {
                     </span>
                   </div>
                   <a
-                    href="#contact"
+                    href={`/${locale}/book`}
                     className="border-brand-charcoal text-brand-charcoal hover:bg-brand-charcoal border px-4 py-2 text-[10px] font-semibold tracking-[0.12em] uppercase transition-colors hover:text-white"
                   >
                     {t("book")}
