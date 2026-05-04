@@ -2,19 +2,32 @@
 @source "../../**/*.{ts,tsx}";
 
 @theme {
-  /* Pink House brand colours */
-  --color-brand-pink: #f472b6;
-  --color-brand-pink-light: #fce7f3;
-  --color-brand-pink-dark: #be185d;
-  --color-brand-cream: #fffbf5;
-  --color-brand-sage: #6b7f6e;
-  --color-brand-sage-light: #d4dfd6;
-  --color-brand-sage-dark: #4a5c4d;
-  --color-brand-charcoal: #1f2937;
+  /* Pink House brand colours — pink + blue-green, refined boutique */
+  --color-brand-pink: #dc4080;
+  --color-brand-pink-light: #fce0eb;
+  --color-brand-pink-dark: #a8285c;
+  --color-brand-blush: #fdf3f7;
+  --color-brand-cream: #fff7ed;
+
+  /* Blue-green — drives ALL text colours and accents */
+  --color-brand-teal: #0f7b6e;
+  --color-brand-teal-light: #d4e8e4;
+  --color-brand-teal-dark: #0a5247;
+  --color-brand-teal-deep: #0a3d36;
+
+  /* Tropical highlights (used sparingly) */
+  --color-brand-coral: #fb7185;
+  --color-brand-peach: #fdba74;
+
+  /* Ink — teal-tinted, never black. */
+  --color-brand-ink: #0f7b6e;
+  --color-brand-ink-soft: #4a8a82;
+  --color-brand-charcoal: #0a5247; /* alias for legacy uses (footer bg) */
 
   /* Typography */
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Playfair Display", ui-serif, Georgia, serif;
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Cormorant Garamond", ui-serif, Georgia, serif;
+  --font-script: "Yellowtail", "Brush Script MT", cursive;
 }
 
 @layer base {
@@ -24,27 +37,54 @@
 
   body {
     background-color: var(--color-brand-cream);
-    color: var(--color-brand-charcoal);
+    color: var(--color-brand-ink);
     font-family: var(--font-sans);
   }
 
   h1,
   h2,
   h3 {
+    color: var(--color-brand-ink);
     font-family: var(--font-serif);
+    font-weight: 600;
+    letter-spacing: -0.005em;
   }
 }
 
 @layer utilities {
+  .font-script {
+    font-family: var(--font-script);
+  }
+
   .section-label {
-    @apply text-brand-pink text-sm font-semibold tracking-widest uppercase;
+    @apply text-brand-teal text-xs font-semibold tracking-[0.3em] uppercase;
   }
 
   .section-title {
-    @apply text-brand-charcoal font-serif text-3xl font-bold md:text-4xl;
+    @apply font-script text-brand-teal text-5xl leading-[1.05] md:text-6xl lg:text-7xl;
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+
+  .hero-title {
+    @apply font-script text-6xl leading-[1.05] text-white md:text-7xl lg:text-[7.5rem];
+    font-weight: 400;
+    letter-spacing: 0;
   }
 
   .section-subtitle {
-    @apply mt-4 max-w-2xl text-lg text-gray-600;
+    @apply mt-5 max-w-2xl text-base leading-relaxed text-[color:var(--color-brand-ink-soft)] md:text-lg;
+  }
+
+  .btn-pill-primary {
+    @apply bg-brand-pink hover:bg-brand-pink-dark inline-flex items-center justify-center rounded-full px-7 py-3 text-xs font-semibold tracking-[0.2em] text-white uppercase transition-colors;
+  }
+
+  .btn-pill-outline {
+    @apply border-brand-teal text-brand-teal hover:bg-brand-teal inline-flex items-center justify-center rounded-full border px-6 py-2.5 text-[11px] font-semibold tracking-[0.2em] uppercase transition-colors hover:text-white;
+  }
+
+  .btn-pill-light {
+    @apply hover:text-brand-ink inline-flex items-center justify-center rounded-full border border-white/70 px-7 py-3 text-xs font-semibold tracking-[0.2em] text-white uppercase backdrop-blur-sm transition-colors hover:bg-white;
   }
 }

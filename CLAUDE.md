@@ -7,7 +7,7 @@ Extends the global `~/.claude/CLAUDE.md`. Rules here override or extend global d
 ## Client
 
 - **Property**: Pink House Bed & Breakfast
-- **Location**: Bophut, Koh Samui, Surat Thani, Thailand
+- **Location**: Lamai, Koh Samui, Surat Thani, Thailand
 - **Type**: Boutique B&B / Guesthouse
 - **Coordinates**: 9.4740216°N, 100.0541465°E
 
@@ -28,19 +28,22 @@ Message files: `messages/{en,fr,de,th}.json` — always update all four simultan
 
 ## Brand
 
-| Token              | Value     | Usage                                   |
-| ------------------ | --------- | --------------------------------------- |
-| `brand-pink`       | `#f472b6` | Primary accent, CTAs, headings          |
-| `brand-pink-light` | `#fce7f3` | Backgrounds, badges                     |
-| `brand-pink-dark`  | `#be185d` | Hover states                            |
-| `brand-cream`      | `#fffbf5` | Page background                         |
-| `brand-sage`       | `#6b7f6e` | Amenities section BG, secondary accents |
-| `brand-sage-light` | `#d4dfd6` | Borders, dividers                       |
-| `brand-charcoal`   | `#1f2937` | Footer BG, body text                    |
+| Token              | Value     | Usage                                         |
+| ------------------ | --------- | --------------------------------------------- |
+| `brand-pink`       | `#dc4080` | Primary accent (matches logo bg), CTAs        |
+| `brand-pink-light` | `#fce0eb` | Backgrounds, badges                           |
+| `brand-pink-dark`  | `#a8285c` | Hover states                                  |
+| `brand-blush`      | `#fdf3f7` | Soft section backgrounds                      |
+| `brand-cream`      | `#fff7ed` | Page background                               |
+| `brand-teal`       | `#0f7b6e` | Secondary accent + body text + section labels |
+| `brand-teal-light` | `#d4e8e4` | Dividers, soft accents                        |
+| `brand-teal-dark`  | `#0a5247` | Footer bg, dark accents                       |
+| `brand-ink`        | `#0f7b6e` | Body text (NEVER pure black)                  |
+| `brand-ink-soft`   | `#4a8a82` | Secondary text                                |
 
-Fonts: **Playfair Display** (headings/serif) + **Inter** (body/sans) — loaded from Google Fonts in `[locale]/layout.tsx`.
+Fonts: **Cormorant Garamond** (h3, refined serif) + **Outfit** (body, geometric sans) + **Yellowtail** (.section-title and .hero-title — brushed script matching the logo wordmark). Loaded from Google Fonts in `[locale]/layout.tsx`.
 
-Design reference: Orchid Lodge Samui (orchidlodgesamui.com) — luxury boutique tropical aesthetic.
+Design reference: Orchid Lodge Samui (orchidlodgesamui.com) — boutique tropical aesthetic. Pink replaces sage as primary; teal replaces sage as secondary.
 
 ---
 
@@ -58,17 +61,40 @@ Design reference: Orchid Lodge Samui (orchidlodgesamui.com) — luxury boutique 
 
 Set in Cloudflare Pages dashboard for production. Copy `.env.example` → `.env.local` for dev.
 
-| Variable                    | Purpose                             |
-| --------------------------- | ----------------------------------- |
-| `TWILIO_ACCOUNT_SID`        | WhatsApp via Twilio                 |
-| `TWILIO_AUTH_TOKEN`         | WhatsApp via Twilio                 |
-| `WHATSAPP_FROM`             | Twilio sandbox or registered number |
-| `WHATSAPP_TO`               | Owner's WhatsApp number             |
-| `RESEND_API_KEY`            | Transactional email                 |
-| `RESEND_FROM`               | From address                        |
-| `CLOUDFLARE_ACCOUNT_ID`     | For drizzle-kit remote migrations   |
-| `CLOUDFLARE_D1_DATABASE_ID` | D1 database ID                      |
-| `CLOUDFLARE_API_TOKEN`      | For drizzle-kit remote migrations   |
+| Variable                    | Purpose                                                           |
+| --------------------------- | ----------------------------------------------------------------- |
+| `TWILIO_ACCOUNT_SID`        | WhatsApp via Twilio                                               |
+| `TWILIO_AUTH_TOKEN`         | WhatsApp via Twilio                                               |
+| `WHATSAPP_FROM`             | Twilio sandbox or registered number                               |
+| `WHATSAPP_TO`               | Owner's WhatsApp number                                           |
+| `RESEND_API_KEY`            | Transactional email                                               |
+| `RESEND_FROM`               | From address                                                      |
+| `SMOOBU_API_KEY`            | Smoobu REST API key — server-side only (Settings → API in Smoobu) |
+| `CLOUDFLARE_ACCOUNT_ID`     | For drizzle-kit remote migrations                                 |
+| `CLOUDFLARE_D1_DATABASE_ID` | D1 database ID                                                    |
+| `CLOUDFLARE_API_TOKEN`      | For drizzle-kit remote migrations                                 |
+
+---
+
+## Smoobu Booking Integration
+
+Native booking flow on `/book` (no iframe widget — uses Smoobu's REST API directly).
+
+- API client: `src/lib/smoobu.ts`
+- Config: `src/config/smoobu.ts` — channel IDs and apartment mapping
+- Channel ID for direct-website reservations: **5722806**
+- Apartment IDs: `3040751, 3040756, 3040766, 3040771, 3040776, 3040781`
+- Local roomId → Smoobu apartmentId mapping in `src/config/smoobu.ts` — **TODO: confirm with user which 3 of the 6 apartments map to standard/deluxe/family**
+
+**Booking flow:**
+
+1. `BookingForm.tsx` (client) → `POST /api/availability` with date range + guests
+2. Server calls `checkApartmentAvailability` and `getRates` on Smoobu, returns available apartments + total price
+3. User selects an apartment, fills guest details
+4. `POST /api/booking` validates with Zod, inserts into D1, calls `createReservation` on Smoobu, updates D1 row with reservation ID, fires WhatsApp + email
+5. If Smoobu fails: D1 row is marked `status: "failed"`; the API returns 502 so the user can retry
+
+**Local development**: D1 is unavailable under `next dev`; the booking route silently skips D1 inserts and only calls Smoobu + notifications. Use `pnpm preview` (wrangler) for full local D1 testing.
 
 ---
 

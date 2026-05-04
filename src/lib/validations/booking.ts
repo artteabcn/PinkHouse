@@ -1,14 +1,25 @@
 import { z } from "zod";
 
-export const BookingSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  phone: z.string().min(6, "Phone number is required"),
-  roomId: z.enum(["standard", "deluxe", "family"]),
-  checkIn: z.string().min(1, "Check-in date is required"),
-  checkOut: z.string().min(1, "Check-out date is required"),
-  guests: z.coerce.number().int().min(1).max(4),
-  notes: z.string().optional(),
-});
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+export const BookingSchema = z
+  .object({
+    name: z.string().min(2, "Name must be at least 2 characters"),
+    email: z.string().email("Invalid email address"),
+    phone: z.string().min(6, "Phone number is required"),
+    roomId: z.enum(["standard", "deluxe", "family"]),
+    apartmentId: z.coerce.number().int().positive().optional(),
+    checkIn: z.string().regex(ISO_DATE, "Check-in must be YYYY-MM-DD"),
+    checkOut: z.string().regex(ISO_DATE, "Check-out must be YYYY-MM-DD"),
+    adults: z.coerce.number().int().min(1).max(10).default(2),
+    children: z.coerce.number().int().min(0).max(10).default(0),
+    totalPrice: z.coerce.number().int().nonnegative().optional(),
+    locale: z.string().min(2).max(5).default("en"),
+    notes: z.string().optional(),
+  })
+  .refine((data) => data.checkOut > data.checkIn, {
+    message: "Check-out must be after check-in",
+    path: ["checkOut"],
+  });
 
 export type BookingInput = z.infer<typeof BookingSchema>;

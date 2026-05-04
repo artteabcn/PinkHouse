@@ -1,13 +1,7 @@
 import React from "react";
 import { useTranslations, useLocale } from "next-intl";
 import Image from "next/image";
-import { Users, BedDouble, Eye } from "lucide-react";
-
-const ROOM_IMAGES: Record<string, string> = {
-  standard: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&q=80",
-  deluxe: "https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=800&q=80",
-  family: "https://images.unsplash.com/photo-1591088398332-8a7791972843?w=800&q=80",
-};
+import { BedDouble, Wind, Trees, Coffee } from "lucide-react";
 
 interface RoomItem {
   id: string;
@@ -24,6 +18,14 @@ export default function RoomsSection(): React.JSX.Element {
   const t = useTranslations("rooms");
   const locale = useLocale();
   const rooms = t.raw("items") as RoomItem[];
+  const room = rooms[0];
+
+  const features = [
+    { icon: BedDouble, label: t("feature1") },
+    { icon: Wind, label: t("feature2") },
+    { icon: Trees, label: t("feature3") },
+    { icon: Coffee, label: t("feature4") },
+  ];
 
   return (
     <section id="rooms" className="bg-white py-32">
@@ -34,63 +36,51 @@ export default function RoomsSection(): React.JSX.Element {
           <p className="section-subtitle mx-auto">{t("subtitle")}</p>
         </div>
 
-        <div className="mt-20 grid gap-10 md:grid-cols-2 lg:grid-cols-3">
-          {rooms.map((room) => (
-            <div key={room.id} className="group bg-brand-cream overflow-hidden">
-              {/* Image */}
-              <div className="relative aspect-[4/3] overflow-hidden">
-                <Image
-                  src={ROOM_IMAGES[room.id] ?? ROOM_IMAGES.standard}
-                  alt={room.name}
-                  fill
-                  className="object-cover transition-transform duration-700 group-hover:scale-105"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                />
-              </div>
+        <div className="bg-brand-cream mt-20 grid items-center gap-0 overflow-hidden rounded-2xl shadow-sm ring-1 ring-black/5 lg:grid-cols-2">
+          <div className="relative aspect-[4/3] lg:aspect-auto lg:h-full lg:min-h-[480px]">
+            <Image
+              src="/images/room.jpeg"
+              alt={room.name}
+              fill
+              className="object-cover"
+              sizes="(max-width: 1024px) 100vw, 50vw"
+            />
+          </div>
 
-              {/* Content */}
-              <div className="p-7">
-                <h3 className="text-brand-charcoal font-serif text-xl font-semibold">
-                  {room.name}
-                </h3>
-                <p className="mt-3 text-sm leading-7 text-gray-500">{room.description}</p>
+          <div className="p-8 md:p-12 lg:p-14">
+            <h3 className="text-brand-ink font-serif text-3xl font-semibold md:text-4xl">
+              {room.name}
+            </h3>
+            <p className="text-brand-ink-soft mt-5 text-base leading-7">{room.description}</p>
 
-                <div className="mt-5 flex flex-wrap gap-4 text-xs text-gray-400">
-                  <span className="flex items-center gap-1.5">
-                    <Users className="size-3.5" />
-                    {room.maxGuests} {t("guests")}
+            <ul className="mt-8 grid gap-3 sm:grid-cols-2">
+              {features.map(({ icon: Icon, label }) => (
+                <li key={label} className="flex items-start gap-3">
+                  <Icon className="text-brand-teal mt-0.5 size-5 shrink-0" />
+                  <span className="text-brand-ink text-sm leading-6">{label}</span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-10 flex flex-col items-start gap-5 border-t border-gray-200/70 pt-8 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <span className="text-brand-ink-soft text-[11px] tracking-wider uppercase">
+                  {t("from")}
+                </span>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-brand-ink font-serif text-3xl font-semibold">
+                    {room.price.toLocaleString()}
                   </span>
-                  <span className="flex items-center gap-1.5">
-                    <BedDouble className="size-3.5" />
-                    {room.beds}
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <Eye className="size-3.5" />
-                    {room.view}
+                  <span className="text-brand-ink-soft text-sm">
+                    {room.currency} {t("perNight")}
                   </span>
                 </div>
-
-                <div className="mt-7 flex items-center justify-between border-t border-gray-200 pt-6">
-                  <div>
-                    <span className="text-xs text-gray-400">{t("from")} </span>
-                    <span className="text-brand-pink font-serif text-2xl font-semibold">
-                      {room.price.toLocaleString()}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      {" "}
-                      {room.currency} {t("perNight")}
-                    </span>
-                  </div>
-                  <a
-                    href={`/${locale}/book`}
-                    className="border-brand-charcoal text-brand-charcoal hover:bg-brand-charcoal border px-4 py-2 text-[10px] font-semibold tracking-[0.12em] uppercase transition-colors hover:text-white"
-                  >
-                    {t("book")}
-                  </a>
-                </div>
               </div>
+              <a href={`/${locale}/book`} className="btn-pill-primary">
+                {t("cta")}
+              </a>
             </div>
-          ))}
+          </div>
         </div>
       </div>
     </section>

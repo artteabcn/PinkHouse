@@ -11,9 +11,14 @@ export const bookings = sqliteTable("bookings", {
   checkOut: text("check_out").notNull(),
   guests: integer("guests").notNull().default(1),
   notes: text("notes"),
-  status: text("status", { enum: ["pending", "confirmed", "cancelled"] })
+  status: text("status", { enum: ["pending", "confirmed", "failed", "cancelled"] })
     .notNull()
     .default("pending"),
+  smoobuApartmentId: integer("smoobu_apartment_id"),
+  smoobuReservationId: integer("smoobu_reservation_id"),
+  channelId: integer("channel_id"),
+  totalPrice: integer("total_price"),
+  currency: text("currency").default("THB"),
   locale: text("locale").notNull().default("en"),
   createdAt: text("created_at")
     .notNull()

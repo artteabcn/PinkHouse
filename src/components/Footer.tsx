@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 
 export default function Footer(): React.JSX.Element {
@@ -18,10 +19,15 @@ export default function Footer(): React.JSX.Element {
     <footer className="bg-brand-charcoal py-20 text-white">
       <div className="mx-auto max-w-7xl px-8">
         <div className="grid gap-12 md:grid-cols-3">
-          {/* Brand */}
           <div>
-            <p className="font-serif text-2xl text-white italic">Pink House</p>
-            <p className="mt-3 max-w-xs text-sm leading-7 text-white/45">{t("tagline")}</p>
+            <Image
+              src="/logo.png"
+              alt="Pink House Koh Samui"
+              width={1024}
+              height={1069}
+              className="h-20 w-auto rounded-xl shadow-md"
+            />
+            <p className="mt-5 max-w-xs text-sm leading-7 text-white/55">{t("tagline")}</p>
           </div>
 
           {/* Links */}
@@ -50,7 +56,7 @@ export default function Footer(): React.JSX.Element {
             <div className="flex flex-col gap-2.5 text-sm text-white/55">
               <p>hello@pinkhousesamui.com</p>
               <p>+66 77 XXX XXX</p>
-              <p>Bophut, Koh Samui, Thailand</p>
+              <p>Lamai, Koh Samui, Thailand</p>
             </div>
           </div>
         </div>

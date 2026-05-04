@@ -4,6 +4,7 @@ import React from "react";
 import { useState, useEffect } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -49,16 +50,18 @@ export default function Nav(): React.JSX.Element {
       )}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-8 py-5">
-        {/* Logo */}
-        <Link href={homeHref}>
-          <span
+        <Link href={homeHref} aria-label="Pink House home" className="block">
+          <Image
+            src="/logo.png"
+            alt="Pink House Koh Samui"
+            width={1024}
+            height={1069}
+            priority
             className={cn(
-              "font-serif text-2xl tracking-wide italic transition-colors",
-              scrolled ? "text-brand-charcoal" : "text-white"
+              "h-12 w-auto rounded-xl shadow-sm transition-all md:h-14",
+              scrolled ? "ring-1 ring-black/5" : "ring-2 ring-white/30"
             )}
-          >
-            Pink House
-          </span>
+          />
         </Link>
 
         {/* Desktop nav */}
@@ -78,11 +81,11 @@ export default function Nav(): React.JSX.Element {
         </nav>
 
         <div className="hidden items-center gap-5 md:flex">
-          <LanguageSelector />
+          <LanguageSelector light={!scrolled} />
           <Link
             href={bookHref}
             className={cn(
-              "border px-5 py-2.5 text-[11px] font-semibold tracking-[0.15em] uppercase transition-colors",
+              "rounded-full border px-5 py-2.5 text-[11px] font-semibold tracking-[0.15em] uppercase transition-colors",
               scrolled
                 ? "border-brand-charcoal text-brand-charcoal hover:bg-brand-charcoal hover:text-white"
                 : "hover:text-brand-charcoal border-white/70 text-white hover:bg-white"
@@ -121,7 +124,7 @@ export default function Nav(): React.JSX.Element {
             </div>
             <Link
               href={bookHref}
-              className="border-brand-charcoal text-brand-charcoal mt-1 border px-5 py-3 text-center text-[11px] font-semibold tracking-[0.15em] uppercase"
+              className="border-brand-charcoal text-brand-charcoal mt-1 rounded-full border px-5 py-3 text-center text-[11px] font-semibold tracking-[0.15em] uppercase"
               onClick={() => setOpen(false)}
             >
               {t("bookNow")}

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 import { useLocale } from "next-intl";
@@ -12,7 +12,13 @@ const LOCALES = [
   { code: "th", label: "ไทย" },
 ] as const;
 
-export default function LanguageSelector(): React.JSX.Element {
+interface LanguageSelectorProps {
+  light?: boolean;
+}
+
+export default function LanguageSelector({
+  light = false,
+}: LanguageSelectorProps): React.JSX.Element {
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
@@ -25,19 +31,26 @@ export default function LanguageSelector(): React.JSX.Element {
 
   return (
     <div className="flex items-center gap-1">
-      {LOCALES.map(({ code, label }) => (
-        <button
-          key={code}
-          onClick={() => switchLocale(code)}
-          className={cn(
-            "rounded px-2 py-1 text-xs font-semibold transition-colors",
-            locale === code ? "bg-brand-pink text-white" : "hover:text-brand-pink text-gray-600"
-          )}
-          aria-label={`Switch to ${code}`}
-        >
-          {label}
-        </button>
-      ))}
+      {LOCALES.map(({ code, label }) => {
+        const isActive = locale === code;
+        return (
+          <button
+            key={code}
+            onClick={() => switchLocale(code)}
+            className={cn(
+              "rounded-full px-2.5 py-1 text-xs font-semibold transition-colors",
+              isActive
+                ? "bg-brand-pink text-white"
+                : light
+                  ? "text-white/85 hover:text-white"
+                  : "text-brand-ink-soft hover:text-brand-pink"
+            )}
+            aria-label={`Switch to ${code}`}
+          >
+            {label}
+          </button>
+        );
+      })}
     </div>
   );
 }
