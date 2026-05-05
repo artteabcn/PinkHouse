@@ -36,6 +36,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         departureDate: departure,
         apartments: apartmentIds,
         guests,
+        // Smoobu rejects the request with 400 "customerId is not set" if this
+        // is omitted. We pass 0 to mean "no existing customer record".
+        customerId: 0,
       }),
       getRates({
         apartmentIds,
