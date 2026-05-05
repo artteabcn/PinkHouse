@@ -63,9 +63,15 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   } catch (err) {
     if (err instanceof SmoobuError) {
       console.error("Smoobu availability error", err.status, err.body);
-      return NextResponse.json({ error: "Smoobu API error", status: err.status }, { status: 502 });
+      // Surface Smoobu's response body so we can debug from the browser
+      // Network tab without needing Worker log access.
+      return NextResponse.json(
+        { error: "Smoobu API error", smoobuStatus: err.status, smoobuBody: err.body },
+        { status: 502 }
+      );
     }
     console.error("Availability route error", err);
-    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+    const detail = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: "Internal error", detail }, { status: 500 });
   }
 }
