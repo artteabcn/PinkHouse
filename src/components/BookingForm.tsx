@@ -64,11 +64,13 @@ export default function BookingForm(): React.JSX.Element {
   const [reservationId, setReservationId] = useState<number | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
 
-  // Set after mount so the input's `min` attribute matches between SSR and
-  // hydration (server and client clocks/timezones can disagree, which would
-  // otherwise produce a hydration mismatch / React #418).
+  // Render an inert placeholder during SSR + first client paint, then swap to
+  // the real form after mount. Eliminates any hydration mismatch source within
+  // this tree (React #418).
+  const [mounted, setMounted] = useState(false);
   const [today, setToday] = useState<string>("");
   useEffect(() => {
+    setMounted(true);
     setToday(new Date().toISOString().slice(0, 10));
   }, []);
 
@@ -131,6 +133,15 @@ export default function BookingForm(): React.JSX.Element {
       setErrorDetail(err instanceof Error ? err.message : "unknown");
       setStep("error");
     }
+  }
+
+  if (!mounted) {
+    return (
+      <div
+        aria-hidden
+        className="h-[420px] animate-pulse rounded-2xl bg-white shadow-sm ring-1 ring-black/5"
+      />
+    );
   }
 
   if (step === "success") {
