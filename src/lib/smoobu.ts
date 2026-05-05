@@ -1,4 +1,5 @@
-const BASE_URL = "https://login.smoobu.com/api";
+const SMOOBU_HOST = "https://login.smoobu.com";
+const BASE_URL = `${SMOOBU_HOST}/api`;
 
 class SmoobuError extends Error {
   status: number;
@@ -57,19 +58,21 @@ export interface AvailabilityRequest {
   departureDate: string;
   apartments?: number[];
   customerId?: number;
-  adults?: number;
-  children?: number;
+  guests?: number;
 }
 
 export interface AvailabilityResponse {
   availableApartments: number[];
   prices?: Record<string, { price: number; currency: string }>;
+  errorMessages?: Record<string, { errorCode: number; message: string }>;
 }
 
 export async function checkAvailability(
   payload: AvailabilityRequest
 ): Promise<AvailabilityResponse> {
-  return smoobuFetch<AvailabilityResponse>("/booking/checkApartmentAvailability", {
+  // The availability endpoint lives at /booking/... (no /api prefix), unlike
+  // most other Smoobu endpoints. Pass the absolute URL to bypass BASE_URL.
+  return smoobuFetch<AvailabilityResponse>(`${SMOOBU_HOST}/booking/checkApartmentAvailability`, {
     method: "POST",
     body: JSON.stringify(payload),
   });
@@ -98,7 +101,16 @@ export async function getRates({
   apartmentIds.forEach((id) => params.append("apartments[]", String(id)));
   params.set("start_date", startDate);
   params.set("end_date", endDate);
-  return smoobuFetch<RatesResponse>(`/rates?${params.toString()}`);
+  // Newer Smoobu responses wrap rates in `{ data: { ... } }`; older ones return
+  // the apartments map directly. Accept both shapes.
+  const raw = (await smoobuFetch<unknown>(`/rates?${params.toString()}`)) as
+    | RatesResponse
+    | { data: RatesResponse };
+  const inner = (raw as { data?: RatesResponse }).data;
+  if (inner && typeof inner === "object") {
+    return inner;
+  }
+  return raw as RatesResponse;
 }
 
 export interface CreateReservationRequest {

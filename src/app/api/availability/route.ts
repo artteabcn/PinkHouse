@@ -28,20 +28,23 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const { arrival, departure, adults, children } = parsed.data;
     const apartmentIds = [...SMOOBU_APARTMENT_IDS];
     const nights = diffNights(arrival, departure);
+    const guests = adults + children;
 
     const [availability, rates] = await Promise.all([
       checkAvailability({
         arrivalDate: arrival,
         departureDate: departure,
         apartments: apartmentIds,
-        adults,
-        children,
+        guests,
       }),
       getRates({
         apartmentIds,
         startDate: arrival,
         endDate: departure,
-      }).catch(() => ({}) as Record<string, Record<string, { price?: number }>>),
+      }).catch((err: unknown) => {
+        console.error("Smoobu getRates failed", err);
+        return {} as Record<string, Record<string, { price?: number }>>;
+      }),
     ]);
 
     const available: AvailableApartment[] = availability.availableApartments.map((id) => {
@@ -59,8 +62,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ available, nights });
   } catch (err) {
     if (err instanceof SmoobuError) {
+      console.error("Smoobu availability error", err.status, err.body);
       return NextResponse.json({ error: "Smoobu API error", status: err.status }, { status: 502 });
     }
+    console.error("Availability route error", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }

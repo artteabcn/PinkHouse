@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -63,6 +63,14 @@ export default function BookingForm(): React.JSX.Element {
   const [selected, setSelected] = useState<AvailableRoom | null>(null);
   const [reservationId, setReservationId] = useState<number | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
+
+  // Set after mount so the input's `min` attribute matches between SSR and
+  // hydration (server and client clocks/timezones can disagree, which would
+  // otherwise produce a hydration mismatch / React #418).
+  const [today, setToday] = useState<string>("");
+  useEffect(() => {
+    setToday(new Date().toISOString().slice(0, 10));
+  }, []);
 
   const search = useForm<SearchValues, unknown, SearchInput>({
     resolver: zodResolver(SearchSchema),
@@ -173,7 +181,7 @@ export default function BookingForm(): React.JSX.Element {
               id="checkIn"
               type="date"
               {...search.register("checkIn")}
-              min={new Date().toISOString().slice(0, 10)}
+              min={today || undefined}
               className={cn(inputClass, search.formState.errors.checkIn && "border-red-400")}
             />
           </div>
@@ -185,7 +193,7 @@ export default function BookingForm(): React.JSX.Element {
               id="checkOut"
               type="date"
               {...search.register("checkOut")}
-              min={new Date().toISOString().slice(0, 10)}
+              min={today || undefined}
               className={cn(inputClass, search.formState.errors.checkOut && "border-red-400")}
             />
           </div>
