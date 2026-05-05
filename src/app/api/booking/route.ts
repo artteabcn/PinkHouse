@@ -120,7 +120,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const roomName = ROOM_NAMES[parsed.roomId] ?? parsed.roomId;
   const guests = parsed.adults + parsed.children;
 
-  await Promise.allSettled([
+  const [whatsappResult, emailResult] = await Promise.allSettled([
     sendWhatsApp({
       body: bookingNotification({
         name: parsed.name,
@@ -141,9 +141,26 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }),
   ]);
 
+  const warnings: { whatsapp?: string; email?: string } = {};
+  if (whatsappResult.status === "rejected") {
+    const reason =
+      whatsappResult.reason instanceof Error
+        ? whatsappResult.reason.message
+        : String(whatsappResult.reason);
+    console.error("WhatsApp notification failed:", reason);
+    warnings.whatsapp = reason;
+  }
+  if (emailResult.status === "rejected") {
+    const reason =
+      emailResult.reason instanceof Error ? emailResult.reason.message : String(emailResult.reason);
+    console.error("Confirmation email failed:", reason);
+    warnings.email = reason;
+  }
+
   return NextResponse.json({
     ok: true,
     reservationId: smoobuReservationId,
     bookingId: localId,
+    ...(Object.keys(warnings).length > 0 ? { warnings } : {}),
   });
 }

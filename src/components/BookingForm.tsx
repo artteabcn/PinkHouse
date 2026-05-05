@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
 import { useTranslations, useLocale } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowLeft, BedDouble, Loader2 } from "lucide-react";
+import { ArrowLeft, BedDouble, Coffee, Eye, Loader2, Trees, Users, Wind } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { APARTMENT_TO_ROOM_ID } from "@/config/smoobu";
 
@@ -54,9 +55,30 @@ const inputClass =
 
 const labelClass = "text-brand-ink mb-1.5 block text-xs font-semibold tracking-wider uppercase";
 
+interface RoomCopy {
+  id: string;
+  name: string;
+  description: string;
+  beds: string;
+  view: string;
+  maxGuests: number;
+}
+
 export default function BookingForm(): React.JSX.Element {
   const t = useTranslations("booking");
+  const tRooms = useTranslations("rooms");
   const locale = useLocale();
+  const roomItems = tRooms.raw("items") as RoomCopy[];
+  const roomCopyById = Object.fromEntries(roomItems.map((r) => [r.id, r])) as Record<
+    string,
+    RoomCopy | undefined
+  >;
+  const amenities = [
+    { icon: BedDouble, label: tRooms("feature1") },
+    { icon: Wind, label: tRooms("feature2") },
+    { icon: Trees, label: tRooms("feature3") },
+    { icon: Coffee, label: tRooms("feature4") },
+  ];
   const [step, setStep] = useState<Step>("search");
   const [available, setAvailable] = useState<AvailableRoom[]>([]);
   const [criteria, setCriteria] = useState<SearchInput | null>(null);
@@ -272,37 +294,94 @@ export default function BookingForm(): React.JSX.Element {
               {t("noRooms")}
             </p>
           ) : (
-            <div className="mt-6 grid gap-4">
-              {available.map((room) => {
-                const label = room.roomId
-                  ? (ROOM_LABELS[room.roomId] ?? room.roomId)
-                  : `Apartment ${room.apartmentId}`;
+            <div className="mt-6 grid gap-6">
+              {available.map((room, idx) => {
+                const copy = (room.roomId && roomCopyById[room.roomId]) || roomCopyById.standard;
+                const label = copy?.name ?? ROOM_LABELS[room.roomId ?? ""] ?? "Standard Room";
                 return (
                   <div
                     key={room.apartmentId}
-                    className="flex flex-col items-start justify-between gap-4 rounded-xl border border-gray-200 p-5 sm:flex-row sm:items-center"
+                    className="bg-brand-cream grid overflow-hidden rounded-2xl ring-1 ring-black/5 md:grid-cols-[280px_1fr]"
                   >
-                    <div>
-                      <p className="text-brand-ink font-serif text-xl font-semibold">{label}</p>
-                      {room.totalPrice !== null && (
-                        <p className="text-brand-ink-soft mt-1 text-sm">
-                          {t("totalFor", { nights: room.nights })} ·{" "}
-                          <span className="text-brand-teal font-semibold">
-                            {room.totalPrice.toLocaleString()} {room.currency}
-                          </span>
-                        </p>
-                      )}
+                    <div className="relative aspect-[4/3] md:aspect-auto md:h-full">
+                      <Image
+                        src="/images/room.jpeg"
+                        alt={label}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, 280px"
+                      />
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelected(room);
-                        setStep("guest");
-                      }}
-                      className="btn-pill-primary"
-                    >
-                      {t("select")}
-                    </button>
+
+                    <div className="flex flex-col gap-4 p-6 md:p-8">
+                      <div>
+                        <p className="text-brand-ink-soft text-[11px] font-semibold tracking-[0.15em] uppercase">
+                          {tRooms("label")} · #{idx + 1}
+                        </p>
+                        <h3 className="text-brand-ink mt-1.5 font-serif text-2xl font-semibold">
+                          {label}
+                        </h3>
+                      </div>
+
+                      {copy && (
+                        <div className="text-brand-ink-soft flex flex-wrap gap-x-5 gap-y-2 text-xs">
+                          <span className="inline-flex items-center gap-1.5">
+                            <BedDouble className="text-brand-teal size-4" />
+                            {copy.beds}
+                          </span>
+                          <span className="inline-flex items-center gap-1.5">
+                            <Users className="text-brand-teal size-4" />
+                            {copy.maxGuests} {tRooms("guests")}
+                          </span>
+                          <span className="inline-flex items-center gap-1.5">
+                            <Eye className="text-brand-teal size-4" />
+                            {copy.view}
+                          </span>
+                        </div>
+                      )}
+
+                      {copy && (
+                        <p className="text-brand-ink-soft text-sm leading-6">{copy.description}</p>
+                      )}
+
+                      <ul className="grid gap-2 sm:grid-cols-2">
+                        {amenities.map(({ icon: Icon, label: amen }) => (
+                          <li
+                            key={amen}
+                            className="text-brand-ink flex items-start gap-2 text-xs leading-5"
+                          >
+                            <Icon className="text-brand-teal mt-0.5 size-4 shrink-0" />
+                            <span>{amen}</span>
+                          </li>
+                        ))}
+                      </ul>
+
+                      <div className="mt-2 flex flex-col items-start justify-between gap-3 border-t border-black/5 pt-5 sm:flex-row sm:items-center">
+                        {room.totalPrice !== null && (
+                          <div>
+                            <p className="text-brand-ink-soft text-[11px] tracking-wider uppercase">
+                              {t("totalFor", { nights: room.nights })}
+                            </p>
+                            <p className="text-brand-ink mt-0.5 font-serif text-2xl font-semibold">
+                              {room.totalPrice.toLocaleString()}{" "}
+                              <span className="text-brand-ink-soft text-sm font-normal">
+                                {room.currency}
+                              </span>
+                            </p>
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelected(room);
+                            setStep("guest");
+                          }}
+                          className="btn-pill-primary"
+                        >
+                          {t("select")}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 );
               })}
