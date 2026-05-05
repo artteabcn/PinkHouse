@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AvailabilitySchema } from "@/lib/validations/availability";
-import { checkAvailability, getRates, SmoobuError } from "@/lib/smoobu";
+import { getRates, SmoobuError } from "@/lib/smoobu";
+import type { DailyRate } from "@/lib/smoobu";
 import { SMOOBU_APARTMENT_IDS, APARTMENT_TO_ROOM_ID } from "@/config/smoobu";
 
 interface AvailableApartment {
@@ -11,10 +12,15 @@ interface AvailableApartment {
   nights: number;
 }
 
-function diffNights(arrival: string, departure: string): number {
-  const a = new Date(arrival).getTime();
-  const d = new Date(departure).getTime();
-  return Math.max(1, Math.round((d - a) / 86_400_000));
+function nightDates(arrival: string, departure: string): string[] {
+  const dates: string[] = [];
+  const cursor = new Date(`${arrival}T00:00:00Z`);
+  const end = new Date(`${departure}T00:00:00Z`);
+  while (cursor < end) {
+    dates.push(cursor.toISOString().slice(0, 10));
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
+  return dates;
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
@@ -25,49 +31,40 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }
 
-    const { arrival, departure, adults, children } = parsed.data;
+    const { arrival, departure } = parsed.data;
     const apartmentIds = [...SMOOBU_APARTMENT_IDS];
-    const nights = diffNights(arrival, departure);
-    const guests = adults + children;
+    const nights = nightDates(arrival, departure);
 
-    const [availability, rates] = await Promise.all([
-      checkAvailability({
-        arrivalDate: arrival,
-        departureDate: departure,
-        apartments: apartmentIds,
-        guests,
-        // Smoobu rejects the request with 400 "customerId is not set" if this
-        // is omitted. We pass 0 to mean "no existing customer record".
-        customerId: 0,
-      }),
-      getRates({
-        apartmentIds,
-        startDate: arrival,
-        endDate: departure,
-      }).catch((err: unknown) => {
-        console.error("Smoobu getRates failed", err);
-        return {} as Record<string, Record<string, { price?: number }>>;
-      }),
-    ]);
+    // Smoobu's /booking/checkApartmentAvailability requires a real customerId
+    // we don't have for anonymous visitors, so we derive availability from
+    // /rates instead — the rates payload gives us `available` (0|1) and
+    // `price` per night per apartment in a single call.
+    const rates = await getRates({
+      apartmentIds,
+      startDate: arrival,
+      endDate: departure,
+    });
 
-    const available: AvailableApartment[] = availability.availableApartments.map((id) => {
-      const dailyRates = rates[String(id)] ?? {};
-      const total = Object.values(dailyRates).reduce((sum, day) => sum + (day.price ?? 0), 0);
-      return {
+    const available: AvailableApartment[] = [];
+    for (const id of apartmentIds) {
+      const daily = rates[String(id)] ?? {};
+      const nightlyRates: DailyRate[] = nights.map((d) => daily[d] ?? {});
+      const allAvailable = nightlyRates.every((r) => r.available === 1);
+      if (!allAvailable) continue;
+      const total = nightlyRates.reduce((sum, r) => sum + (r.price ?? 0), 0);
+      available.push({
         apartmentId: id,
         roomId: APARTMENT_TO_ROOM_ID[id] ?? null,
         totalPrice: total > 0 ? total : null,
         currency: "THB",
-        nights,
-      };
-    });
+        nights: nights.length,
+      });
+    }
 
-    return NextResponse.json({ available, nights });
+    return NextResponse.json({ available, nights: nights.length });
   } catch (err) {
     if (err instanceof SmoobuError) {
       console.error("Smoobu availability error", err.status, err.body);
-      // Surface Smoobu's response body so we can debug from the browser
-      // Network tab without needing Worker log access.
       return NextResponse.json(
         { error: "Smoobu API error", smoobuStatus: err.status, smoobuBody: err.body },
         { status: 502 }
