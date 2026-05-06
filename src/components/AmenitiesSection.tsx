@@ -24,7 +24,7 @@ export default function AmenitiesSection(): React.JSX.Element {
   const items = t.raw("items") as AmenityItem[];
 
   return (
-    <section id="amenities" className="bg-brand-blush py-32">
+    <section id="amenities" className="bg-brand-blush py-20">
       <div className="mx-auto max-w-7xl px-8">
         <div className="text-center">
           <p className="section-label">{t("label")}</p>

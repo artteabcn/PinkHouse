@@ -12,7 +12,7 @@ export default function AboutSection(): React.JSX.Element {
   ];
 
   return (
-    <section id="about" className="bg-brand-cream py-32">
+    <section id="about" className="bg-brand-cream py-20">
       <div className="mx-auto max-w-7xl px-8">
         <div className="grid gap-20 lg:grid-cols-2 lg:items-center">
           <AboutCarousel />

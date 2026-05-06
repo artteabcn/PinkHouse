@@ -28,7 +28,7 @@ export default function RoomsSection(): React.JSX.Element {
   ];
 
   return (
-    <section id="rooms" className="bg-white py-32">
+    <section id="rooms" className="bg-white py-20">
       <div className="mx-auto max-w-7xl px-8">
         <div className="text-center">
           <p className="section-label">{t("label")}</p>

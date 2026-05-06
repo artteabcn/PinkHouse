@@ -20,7 +20,7 @@ export default function GalleryGrid(): React.JSX.Element {
   const t = useTranslations("gallery");
 
   return (
-    <section id="gallery" className="bg-white py-32">
+    <section id="gallery" className="bg-white py-20">
       <div className="mx-auto max-w-7xl px-8">
         <div className="text-center">
           <p className="section-label">{t("label")}</p>

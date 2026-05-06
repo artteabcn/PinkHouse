@@ -159,13 +159,6 @@
       "error": "Une erreur s'est produite. Veuillez réessayer ou nous contacter directement."
     }
   },
-  "footer": {
-    "tagline": "Votre maison à Koh Samui.",
-    "links": "Liens rapides",
-    "follow": "Suivez-nous",
-    "legal": "© {year} Pink House Koh Samui. Tous droits réservés.",
-    "privacy": "Politique de confidentialité"
-  },
   "bookPage": {
     "label": "Réservations",
     "title": "Réserver votre séjour",

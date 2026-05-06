@@ -163,13 +163,6 @@
       "error": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut oder kontaktieren Sie uns direkt."
     }
   },
-  "footer": {
-    "tagline": "Ihr Zuhause auf Koh Samui.",
-    "links": "Schnelllinks",
-    "follow": "Folgen Sie uns",
-    "legal": "© {year} Pink House Koh Samui. Alle Rechte vorbehalten.",
-    "privacy": "Datenschutz"
-  },
   "bookPage": {
     "label": "Reservierungen",
     "title": "Ihren Aufenthalt buchen",

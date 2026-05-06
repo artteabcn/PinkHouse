@@ -22,7 +22,7 @@ export default function TestimonialsSection(): React.JSX.Element {
   const items = t.raw("items") as TestimonialItem[];
 
   return (
-    <section className="bg-brand-cream py-32">
+    <section className="bg-brand-cream py-20">
       <div className="mx-auto max-w-7xl px-8">
         <div className="text-center">
           <p className="section-label">{t("label")}</p>

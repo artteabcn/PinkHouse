@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { MapPin, Phone, Mail, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ContactSchema, type ContactInput } from "@/lib/validations/contact";
+import { FacebookIcon, InstagramIcon, SOCIAL_LINKS } from "@/components/SocialIcons";
 import { useState } from "react";
 
 export default function ContactSection(): React.JSX.Element {
@@ -45,7 +46,7 @@ export default function ContactSection(): React.JSX.Element {
   ];
 
   return (
-    <section id="contact" className="bg-brand-cream py-32">
+    <section id="contact" className="bg-brand-cream py-20">
       <div className="mx-auto max-w-7xl px-8">
         <div className="text-center">
           <p className="section-label">{t("label")}</p>
@@ -53,9 +54,9 @@ export default function ContactSection(): React.JSX.Element {
           <p className="section-subtitle mx-auto">{t("subtitle")}</p>
         </div>
 
-        <div className="mt-16 grid gap-12 lg:grid-cols-2">
+        <div className="mt-10 grid gap-10 lg:grid-cols-2">
           {/* Contact info */}
-          <div className="flex flex-col gap-8">
+          <div className="flex flex-col gap-5">
             {contactItems.map(({ icon: Icon, label, href }) => (
               <div key={label} className="flex items-start gap-4">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center">
@@ -71,17 +72,37 @@ export default function ContactSection(): React.JSX.Element {
               </div>
             ))}
 
-            <a
-              href="https://wa.me/6677000000"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex w-fit items-center gap-3 rounded-full bg-[#25D366] px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-            >
-              <MessageCircle className="size-5" />
-              {t("whatsapp")}
-            </a>
+            <div className="flex flex-wrap items-center gap-3">
+              <a
+                href="https://wa.me/6677000000"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 rounded-full bg-[#25D366] px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+              >
+                <MessageCircle className="size-5" />
+                {t("whatsapp")}
+              </a>
+              <a
+                href={SOCIAL_LINKS.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook"
+                className="flex h-12 w-12 items-center justify-center rounded-full bg-[#1877F2] text-white transition-opacity hover:opacity-90"
+              >
+                <FacebookIcon className="h-5 w-5" />
+              </a>
+              <a
+                href={SOCIAL_LINKS.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
+                className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-[#fdc468] via-[#dc2743] to-[#bc1888] text-white transition-opacity hover:opacity-90"
+              >
+                <InstagramIcon className="h-5 w-5" />
+              </a>
+            </div>
 
-            <div className="bg-brand-sage-light mt-2 h-56 overflow-hidden rounded-2xl ring-1 ring-black/5">
+            <div className="bg-brand-sage-light h-40 overflow-hidden rounded-2xl ring-1 ring-black/5">
               <iframe
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15807.06!2d100.0541465!3d9.4740216!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zOcKwMjgnMjYuNSJOIDEwMMKwMDMnMTUuMCJF!5e0!3m2!1sen!2sth!4v1700000000000"
                 width="100%"
