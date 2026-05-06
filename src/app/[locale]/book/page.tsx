@@ -1,16 +1,48 @@
 import React from "react";
 import type { Metadata } from "next";
 import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import BookingForm from "@/components/BookingForm";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import { SITE, alternateLanguages, localePath } from "@/config/site";
 
-export const metadata: Metadata = {
-  title: "Book Your Stay — Pink House Koh Samui",
-  description:
-    "Reserve your room at Pink House, a boutique bed & breakfast in Lamai, Koh Samui, Thailand.",
-};
+interface PageProps {
+  params: Promise<{ locale: string }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "seo" });
+  const title = t("book.title");
+  const description = t("book.description");
+  const url = localePath(locale, "book");
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: url,
+      languages: alternateLanguages("book"),
+    },
+    openGraph: {
+      type: "website",
+      url,
+      siteName: SITE.name,
+      title,
+      description,
+      locale,
+      images: [{ url: SITE.ogImage, width: 1200, height: 630, alt: t("ogAlt") }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [SITE.ogImage],
+    },
+  };
+}
 
 function BookingHeader(): React.JSX.Element {
   const t = useTranslations("bookPage");

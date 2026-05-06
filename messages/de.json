@@ -1,4 +1,16 @@
 {
+  "seo": {
+    "home": {
+      "title": "Pink House — Boutique Bed & Breakfast in Lamai, Koh Samui",
+      "description": "Familiengeführtes Boutique-B&B in Lamai, Koh Samui. Pool, Frühstück, fußläufig zum Strand. Englisch, Französisch, Deutsch und Thai gesprochen. Direkt zum besten Preis buchen."
+    },
+    "book": {
+      "title": "Aufenthalt buchen — Pink House Koh Samui",
+      "description": "Buchen Sie Ihr Zimmer direkt im Pink House Lamai, Koh Samui. Verfügbarkeit in Echtzeit, keine Buchungsgebühren, sofortige Bestätigung."
+    },
+    "ogAlt": "Pink House Bed & Breakfast — Lamai, Koh Samui",
+    "keywords": "Koh Samui B&B, Pension Lamai, Boutique-Gästehaus Koh Samui, Pink House Samui, Unterkunft Lamai"
+  },
   "nav": {
     "about": "Über uns",
     "rooms": "Zimmer",
