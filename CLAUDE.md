@@ -120,9 +120,23 @@ Three room types (IDs used as enum values in Zod schema and DB):
 | `src/lib/validations/contact.ts` | Zod schema for contact form                 |
 | `src/app/api/contact/route.ts`   | Contact form API                            |
 | `src/app/api/booking/route.ts`   | Booking API                                 |
-| `messages/*.json`                | i18n strings — en/fr/de/th                  |
+| `messages/*.json`                | i18n strings — en/fr/de/th (incl. `seo.*`)  |
 | `wrangler.toml`                  | Cloudflare D1 + Pages config                |
 | `open-next.config.ts`            | OpenNext Cloudflare adapter config          |
+| `src/config/site.ts`             | Single source of truth for SEO/JSON-LD      |
+| `src/components/SocialIcons.tsx` | Inline FB/IG SVGs + `SOCIAL_LINKS`          |
+| `src/app/robots.ts`              | Robots config (allows all, disallows /api/) |
+| `src/app/sitemap.ts`             | Sitemap (4 locales × all routes + hreflang) |
+
+---
+
+## SEO
+
+- **Single source of truth**: `src/config/site.ts` — URL, address, geo, social, OG image, locales. All metadata + JSON-LD pull from here.
+- **Per-page metadata**: every locale page exports `generateMetadata` (async, takes `{ params }`) — title/description from `seo.*` i18n keys, canonical URL via `localePath()`, hreflang alternates via `alternateLanguages()`, OpenGraph + Twitter card.
+- **JSON-LD**: `LodgingBusiness` schema lives in `src/app/[locale]/page.tsx` as the `LodgingJsonLd` server component. Phone is **deliberately omitted** until the real number replaces the `+66 77 XXX XXX` placeholder in `messages/*.json`.
+- **Root layout** (`src/app/layout.tsx`) sets `metadataBase`, `themeColor`, icons, and robots defaults — these inherit into all routes.
+- When adding a new route: (a) add `seo.<route>.title`/`description` to all four locale files, (b) add the route to `ROUTES` in `src/app/sitemap.ts`, (c) export `generateMetadata` using the same pattern as `[locale]/page.tsx`.
 
 ---
 
@@ -139,3 +153,7 @@ When Claude is corrected:
 # Added: 2026-04-24 — Middleware must be src/middleware.ts (edge runtime). Next.js 16 deprecated this in favour of proxy.ts but OpenNext requires edge; proxy.ts is Node.js-only and rejected by OpenNext.
 
 # Added: 2026-04-24 — open-next.config.ts must use defineCloudflareConfig() from @opennextjs/cloudflare, not a manual config object (edgeExternals is not a typed property on OpenNextConfig).
+
+# Added: 2026-05-06 — `lucide-react` is pinned at v1.9.0 in this repo, which predates brand icons. Do NOT import `Facebook`, `Instagram`, or any brand glyph from `lucide-react` — TS will fail Cloudflare's build. Use the inline SVGs in `src/components/SocialIcons.tsx` instead.
+
+# Added: 2026-05-06 — When adding/changing routes, keep `src/app/sitemap.ts` and `seo.*` i18n keys in sync; missing entries silently degrade SEO without failing the build.
