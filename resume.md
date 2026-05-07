@@ -1,6 +1,6 @@
 # Pink House — Project Resume
 
-Last updated: 2026-05-06
+Last updated: 2026-05-07
 
 A boutique B&B website for Pink House Koh Samui (Lamai). Marketing site
 
@@ -53,18 +53,11 @@ Smoobu failure: D1 row marked `status: "failed"`, API returns 502.
 
 ## Open / pending
 
-- **Real phone number** — `messages/*.json` still has `+66 77 XXX XXX`;
-  drop the real one in and add `telephone` to the `LodgingJsonLd` data.
 - **Custom OG image** — currently reusing `/images/main.jpeg`. A
   purpose-built 1200×630 hero with logo + tagline overlay performs
   better on social shares.
-- **Smoobu apartment mapping** — local `roomId → smoobuApartmentId` in
-  `src/config/smoobu.ts` is a guess; needs owner confirmation of which
-  3 of the 6 Smoobu apartments are standard / deluxe / family.
 - **Search Console** — submit sitemap at `https://pinkhousesamui.com/sitemap.xml`
   and add the verification meta tag.
-- **Per-room JSON-LD** — `Hotel` / `HotelRoom` with `Offer` (price,
-  currency, availability) on `/book` would unlock room rich results.
 - **Reviews** — once Booking/Google reviews exist, add `AggregateRating`
   to the `LodgingBusiness` schema.
 - **Footer keys** — `footer.*` i18n keys were removed when the footer

@@ -8,6 +8,7 @@ import { MapPin, Phone, Mail, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ContactSchema, type ContactInput } from "@/lib/validations/contact";
 import { FacebookIcon, InstagramIcon, SOCIAL_LINKS } from "@/components/SocialIcons";
+import { SITE } from "@/config/site";
 import { useState } from "react";
 
 export default function ContactSection(): React.JSX.Element {
@@ -74,7 +75,7 @@ export default function ContactSection(): React.JSX.Element {
 
             <div className="flex flex-wrap items-center gap-3">
               <a
-                href="https://wa.me/6677000000"
+                href={`https://wa.me/${SITE.phone.waMe}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 rounded-full bg-[#25D366] px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"

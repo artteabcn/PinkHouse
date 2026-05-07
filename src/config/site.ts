@@ -9,6 +9,11 @@ export const SITE = {
   defaultLocale: "en",
   locales: ["en", "fr", "de", "th"] as const,
   email: "hello@pinkhousesamui.com",
+  phone: {
+    e164: "+66811065304",
+    display: "+66 81 106 5304",
+    waMe: "66811065304",
+  },
   ogImage: "/images/main.jpeg",
   address: {
     streetAddress: "Lamai",

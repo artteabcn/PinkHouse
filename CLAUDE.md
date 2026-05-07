@@ -83,8 +83,7 @@ Native booking flow on `/book` (no iframe widget — uses Smoobu's REST API dire
 - API client: `src/lib/smoobu.ts`
 - Config: `src/config/smoobu.ts` — channel IDs and apartment mapping
 - Channel ID for direct-website reservations: **5722806**
-- Apartment IDs: `3040751, 3040756, 3040766, 3040771, 3040776, 3040781`
-- Local roomId → Smoobu apartmentId mapping in `src/config/smoobu.ts` — **TODO: confirm with user which 3 of the 6 apartments map to standard/deluxe/family**
+- Apartment IDs: `3040751, 3040756, 3040766, 3040771, 3040776, 3040781` — all six are the same room type (`standard`). `APARTMENT_TO_ROOM_ID` in `src/config/smoobu.ts` maps every apartment to `"standard"`; if a new room type is ever added, update that map first and the booking pipeline picks it up automatically (Zod uses `z.string()`, the API resolves apartment ↔ roomId via the config).
 
 **Booking flow:**
 
@@ -100,11 +99,11 @@ Native booking flow on `/book` (no iframe widget — uses Smoobu's REST API dire
 
 ## Rooms
 
-Three room types (IDs used as enum values in Zod schema and DB):
+One room type today, replicated across 6 physical units in Smoobu:
 
-- `standard` — 1 Queen, garden view, max 2 guests, 1800 THB/night
-- `deluxe` — 1 King, pool view, max 2 guests, 2600 THB/night
-- `family` — 2 bedrooms, max 4 guests, 4200 THB/night
+- `standard` — 1 Queen, garden view, max 2 guests, from 1800 THB/night
+
+The displayed "from" price lives in `messages/*.json` (`rooms.items[0].price`) as a marketing teaser — actual nightly rates come from Smoobu's `/rates` endpoint at booking time. If a new room type is introduced later, add it to `APARTMENT_TO_ROOM_ID` in `src/config/smoobu.ts` _and_ append a matching item to `rooms.items` in all four locale files.
 
 ---
 
@@ -134,7 +133,7 @@ Three room types (IDs used as enum values in Zod schema and DB):
 
 - **Single source of truth**: `src/config/site.ts` — URL, address, geo, social, OG image, locales. All metadata + JSON-LD pull from here.
 - **Per-page metadata**: every locale page exports `generateMetadata` (async, takes `{ params }`) — title/description from `seo.*` i18n keys, canonical URL via `localePath()`, hreflang alternates via `alternateLanguages()`, OpenGraph + Twitter card.
-- **JSON-LD**: `LodgingBusiness` schema lives in `src/app/[locale]/page.tsx` as the `LodgingJsonLd` server component. Phone is **deliberately omitted** until the real number replaces the `+66 77 XXX XXX` placeholder in `messages/*.json`.
+- **JSON-LD**: `LodgingBusiness` schema lives in `src/app/[locale]/page.tsx` as the `LodgingJsonLd` server component. Phone, email, address, geo, and social all read from `src/config/site.ts` (the `SITE.phone` object exposes `e164` for `tel:`/JSON-LD, `display` for UI strings, and `waMe` for `wa.me/` links — keep these formats in sync if the number ever changes).
 - **Root layout** (`src/app/layout.tsx`) sets `metadataBase`, `themeColor`, icons, and robots defaults — these inherit into all routes.
 - When adding a new route: (a) add `seo.<route>.title`/`description` to all four locale files, (b) add the route to `ROUTES` in `src/app/sitemap.ts`, (c) export `generateMetadata` using the same pattern as `[locale]/page.tsx`.
 

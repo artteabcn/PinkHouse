@@ -1,0 +1,123 @@
+// Owner notifications via Cloudflare's send_email binding.
+// Recipients must be verified destination addresses in Cloudflare Email
+// Routing — this is fine for owner alerts but never use it for guest mail.
+
+interface SendEmailBinding {
+  send(builder: {
+    from: string;
+    to: string | string[];
+    subject: string;
+    replyTo?: string;
+    html?: string;
+    text?: string;
+  }): Promise<unknown>;
+}
+
+async function getBinding(): Promise<SendEmailBinding | null> {
+  try {
+    const mod = await import("@opennextjs/cloudflare");
+    const ctx = await mod.getCloudflareContext({ async: true });
+    const env = ctx.env as { SEND_EMAIL?: SendEmailBinding };
+    return env.SEND_EMAIL ?? null;
+  } catch {
+    return null;
+  }
+}
+
+interface OwnerEmailParams {
+  subject: string;
+  html: string;
+  replyTo?: string;
+}
+
+export async function sendOwnerEmail(params: OwnerEmailParams): Promise<void> {
+  const binding = await getBinding();
+  if (!binding) throw new Error("SEND_EMAIL binding unavailable (run via wrangler/Pages)");
+
+  const to = process.env.OWNER_EMAIL;
+  if (!to) throw new Error("OWNER_EMAIL not configured");
+
+  const from = process.env.OWNER_FROM_EMAIL ?? "noreply@pinkhousesamui.com";
+
+  await binding.send({
+    from,
+    to,
+    subject: params.subject,
+    html: params.html,
+    replyTo: params.replyTo,
+  });
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+export function bookingOwnerEmail(data: {
+  name: string;
+  email: string;
+  phone: string;
+  room: string;
+  checkIn: string;
+  checkOut: string;
+  guests: number;
+  notes?: string;
+  totalPrice?: number;
+  reservationId?: number;
+}): { subject: string; html: string; replyTo: string } {
+  const subject = `New booking — ${data.name} — ${data.checkIn} → ${data.checkOut}`;
+  const rows: [string, string][] = [
+    ["Guest", data.name],
+    ["Email", data.email],
+    ["Phone", data.phone],
+    ["Room", data.room],
+    ["Check-in", data.checkIn],
+    ["Check-out", data.checkOut],
+    ["Guests", String(data.guests)],
+  ];
+  if (data.totalPrice !== undefined) {
+    rows.push(["Total", `${data.totalPrice.toLocaleString()} THB`]);
+  }
+  if (data.reservationId !== undefined) {
+    rows.push(["Smoobu reservation", `#${data.reservationId}`]);
+  }
+  if (data.notes) rows.push(["Notes", data.notes]);
+
+  const tableRows = rows
+    .map(
+      ([k, v]) =>
+        `<tr><td style="padding:6px 12px 6px 0;color:#4a8a82;font-size:13px;">${escapeHtml(k)}</td><td style="padding:6px 0;color:#0f7b6e;font-size:14px;">${escapeHtml(v)}</td></tr>`
+    )
+    .join("");
+
+  const html = `
+    <div style="font-family:system-ui,sans-serif;max-width:560px;">
+      <h2 style="color:#dc4080;margin:0 0 16px;">New booking — Pink House</h2>
+      <table style="border-collapse:collapse;">${tableRows}</table>
+    </div>
+  `;
+
+  return { subject, html, replyTo: data.email };
+}
+
+export function contactOwnerEmail(data: { name: string; email: string; message: string }): {
+  subject: string;
+  html: string;
+  replyTo: string;
+} {
+  return {
+    subject: `Contact form — ${data.name}`,
+    html: `
+      <div style="font-family:system-ui,sans-serif;max-width:560px;">
+        <h2 style="color:#dc4080;margin:0 0 16px;">New contact message — Pink House</h2>
+        <p style="color:#0f7b6e;font-size:14px;"><strong>${escapeHtml(data.name)}</strong> &lt;${escapeHtml(data.email)}&gt;</p>
+        <p style="color:#0f7b6e;font-size:14px;white-space:pre-wrap;">${escapeHtml(data.message)}</p>
+      </div>
+    `,
+    replyTo: data.email,
+  };
+}

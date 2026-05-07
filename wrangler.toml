@@ -10,5 +10,11 @@ database_name = "pinkhouse"
 database_id = "cdcfa781-8317-4e85-87fe-6579d0671b81"
 migrations_dir = "drizzle"
 
+# Cloudflare Email Workers — owner notifications.
+# Recipients must be verified destination addresses in Email Routing
+# (verify OWNER_EMAIL once in the Cloudflare dashboard).
+[[send_email]]
+name = "SEND_EMAIL"
+
 [dev]
 port = 8788

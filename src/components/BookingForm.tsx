@@ -42,12 +42,6 @@ const GuestSchema = z.object({
 
 type GuestInput = z.infer<typeof GuestSchema>;
 
-const ROOM_LABELS: Record<string, string> = {
-  standard: "Standard Room",
-  deluxe: "Deluxe Room",
-  family: "Family Suite",
-};
-
 type Step = "search" | "results" | "guest" | "success" | "error";
 
 const inputClass =
@@ -297,7 +291,7 @@ export default function BookingForm(): React.JSX.Element {
             <div className="mt-6 grid gap-6">
               {available.map((room, idx) => {
                 const copy = (room.roomId && roomCopyById[room.roomId]) || roomCopyById.standard;
-                const label = copy?.name ?? ROOM_LABELS[room.roomId ?? ""] ?? "Standard Room";
+                const label = copy?.name ?? `Apartment ${room.apartmentId}`;
                 return (
                   <div
                     key={room.apartmentId}
@@ -404,9 +398,8 @@ export default function BookingForm(): React.JSX.Element {
           <div className="bg-brand-blush rounded-xl p-5">
             <p className="section-label">{t("summary")}</p>
             <p className="text-brand-ink mt-2 font-serif text-lg">
-              {selected.roomId
-                ? (ROOM_LABELS[selected.roomId] ?? selected.roomId)
-                : `Apartment ${selected.apartmentId}`}
+              {(selected.roomId && roomCopyById[selected.roomId]?.name) ??
+                `Apartment ${selected.apartmentId}`}
             </p>
             <p className="text-brand-ink-soft mt-1 text-sm">
               {criteria.checkIn} → {criteria.checkOut} · {criteria.adults + criteria.children}{" "}

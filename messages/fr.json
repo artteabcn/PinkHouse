@@ -61,26 +61,6 @@
         "maxGuests": 2,
         "beds": "1 lit Queen",
         "view": "Vue jardin"
-      },
-      {
-        "id": "deluxe",
-        "name": "Chambre Deluxe",
-        "description": "Spacieuse et élégante avec un lit king size, du linge de qualité supérieure, une douche à effet pluie et une terrasse avec vue sur la piscine — idéale pour les couples.",
-        "price": 2600,
-        "currency": "THB",
-        "maxGuests": 2,
-        "beds": "1 lit King",
-        "view": "Vue piscine"
-      },
-      {
-        "id": "family",
-        "name": "Suite Familiale",
-        "description": "Notre plus grand hébergement avec deux chambres, un salon, une kitchenette et une terrasse privée — idéal pour les familles ou les groupes d'amis.",
-        "price": 4200,
-        "currency": "THB",
-        "maxGuests": 4,
-        "beds": "2 chambres",
-        "view": "Vue jardin & piscine"
       }
     ]
   },
@@ -157,7 +137,7 @@
     "title": "Contactez-nous",
     "subtitle": "Nous serions ravis de vous entendre. Contactez-nous par WhatsApp, e-mail ou via le formulaire ci-dessous.",
     "address": "123 Moo 4, Lamai, Koh Samui, Surat Thani 84310, Thaïlande",
-    "phone": "+66 77 XXX XXX",
+    "phone": "+66 81 106 5304",
     "email": "hello@pinkhousesamui.com",
     "whatsapp": "Discuter sur WhatsApp",
     "form": {

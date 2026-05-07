@@ -1,18 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { BookingSchema, type BookingInput } from "@/lib/validations/booking";
-import { sendWhatsApp, bookingNotification } from "@/lib/whatsapp";
+import { sendOwnerEmail, bookingOwnerEmail } from "@/lib/owner-email";
 import { sendBookingConfirmation } from "@/lib/resend";
 import { createReservation, SmoobuError } from "@/lib/smoobu";
 import { ROOM_TO_APARTMENT_ID, SMOOBU_CHANNEL_ID_DIRECT_WEBSITE } from "@/config/smoobu";
 import { getDbOrNull } from "@/lib/db/get-db";
 import { bookings } from "@/db/schema";
-
-const ROOM_NAMES: Record<string, string> = {
-  standard: "Standard Room",
-  deluxe: "Deluxe Room",
-  family: "Family Suite",
-};
 
 function splitName(fullName: string): { firstName: string; lastName: string } {
   const trimmed = fullName.trim();
@@ -117,20 +111,24 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     await markBookingStatus(localId, "confirmed", smoobuReservationId);
   }
 
-  const roomName = ROOM_NAMES[parsed.roomId] ?? parsed.roomId;
+  const roomName = parsed.roomId === "standard" ? "Standard Room" : parsed.roomId;
   const guests = parsed.adults + parsed.children;
 
-  const [whatsappResult, emailResult] = await Promise.allSettled([
-    sendWhatsApp({
-      body: bookingNotification({
+  const [ownerResult, guestResult] = await Promise.allSettled([
+    sendOwnerEmail(
+      bookingOwnerEmail({
         name: parsed.name,
+        email: parsed.email,
+        phone: parsed.phone,
         room: roomName,
         checkIn: parsed.checkIn,
         checkOut: parsed.checkOut,
         guests,
-        phone: parsed.phone,
-      }),
-    }),
+        notes: parsed.notes,
+        totalPrice: parsed.totalPrice,
+        reservationId: smoobuReservationId,
+      })
+    ),
     sendBookingConfirmation({
       to: parsed.email,
       name: parsed.name,
@@ -141,20 +139,18 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }),
   ]);
 
-  const warnings: { whatsapp?: string; email?: string } = {};
-  if (whatsappResult.status === "rejected") {
+  const warnings: { ownerEmail?: string; guestEmail?: string } = {};
+  if (ownerResult.status === "rejected") {
     const reason =
-      whatsappResult.reason instanceof Error
-        ? whatsappResult.reason.message
-        : String(whatsappResult.reason);
-    console.error("WhatsApp notification failed:", reason);
-    warnings.whatsapp = reason;
+      ownerResult.reason instanceof Error ? ownerResult.reason.message : String(ownerResult.reason);
+    console.error("Owner notification email failed:", reason);
+    warnings.ownerEmail = reason;
   }
-  if (emailResult.status === "rejected") {
+  if (guestResult.status === "rejected") {
     const reason =
-      emailResult.reason instanceof Error ? emailResult.reason.message : String(emailResult.reason);
-    console.error("Confirmation email failed:", reason);
-    warnings.email = reason;
+      guestResult.reason instanceof Error ? guestResult.reason.message : String(guestResult.reason);
+    console.error("Guest confirmation email failed:", reason);
+    warnings.guestEmail = reason;
   }
 
   return NextResponse.json({
