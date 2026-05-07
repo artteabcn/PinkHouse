@@ -61,18 +61,16 @@ Design reference: Orchid Lodge Samui (orchidlodgesamui.com) — boutique tropica
 
 Set in Cloudflare Pages dashboard for production. Copy `.env.example` → `.env.local` for dev.
 
-| Variable                    | Purpose                                                           |
-| --------------------------- | ----------------------------------------------------------------- |
-| `TWILIO_ACCOUNT_SID`        | WhatsApp via Twilio                                               |
-| `TWILIO_AUTH_TOKEN`         | WhatsApp via Twilio                                               |
-| `WHATSAPP_FROM`             | Twilio sandbox or registered number                               |
-| `WHATSAPP_TO`               | Owner's WhatsApp number                                           |
-| `RESEND_API_KEY`            | Transactional email                                               |
-| `RESEND_FROM`               | From address                                                      |
-| `SMOOBU_API_KEY`            | Smoobu REST API key — server-side only (Settings → API in Smoobu) |
-| `CLOUDFLARE_ACCOUNT_ID`     | For drizzle-kit remote migrations                                 |
-| `CLOUDFLARE_D1_DATABASE_ID` | D1 database ID                                                    |
-| `CLOUDFLARE_API_TOKEN`      | For drizzle-kit remote migrations                                 |
+| Variable                    | Purpose                                                                                    |
+| --------------------------- | ------------------------------------------------------------------------------------------ |
+| `RESEND_API_KEY`            | Resend — guest confirmations + owner alerts (single provider)                              |
+| `RESEND_FROM`               | Default from-address for guest mail; must be on a verified Resend domain                   |
+| `OWNER_EMAIL`               | Destination address for booking + contact form notifications                               |
+| `OWNER_FROM_EMAIL`          | From-address for owner alerts (also a verified Resend domain); falls back to `RESEND_FROM` |
+| `SMOOBU_API_KEY`            | Smoobu REST API key — server-side only (Settings → API in Smoobu)                          |
+| `CLOUDFLARE_ACCOUNT_ID`     | For drizzle-kit remote migrations                                                          |
+| `CLOUDFLARE_D1_DATABASE_ID` | D1 database ID                                                                             |
+| `CLOUDFLARE_API_TOKEN`      | For drizzle-kit remote migrations                                                          |
 
 ---
 
@@ -90,7 +88,7 @@ Native booking flow on `/book` (no iframe widget — uses Smoobu's REST API dire
 1. `BookingForm.tsx` (client) → `POST /api/availability` with date range + guests
 2. Server calls `checkApartmentAvailability` and `getRates` on Smoobu, returns available apartments + total price
 3. User selects an apartment, fills guest details
-4. `POST /api/booking` validates with Zod, inserts into D1, calls `createReservation` on Smoobu, updates D1 row with reservation ID, fires WhatsApp + email
+4. `POST /api/booking` validates with Zod, inserts into D1, calls `createReservation` on Smoobu, updates D1 row with reservation ID, fires owner alert + guest confirmation (both via Resend)
 5. If Smoobu fails: D1 row is marked `status: "failed"`; the API returns 502 so the user can retry
 
 **Local development**: D1 is unavailable under `next dev`; the booking route silently skips D1 inserts and only calls Smoobu + notifications. Use `pnpm preview` (wrangler) for full local D1 testing.
@@ -113,8 +111,8 @@ The displayed "from" price lives in `messages/*.json` (`rooms.items[0].price`) a
 | -------------------------------- | ------------------------------------------- |
 | `src/db/schema.ts`               | Drizzle schema — bookings + contacts tables |
 | `src/middleware.ts`              | next-intl edge middleware (i18n routing)    |
-| `src/lib/whatsapp.ts`            | Twilio WhatsApp notifications               |
-| `src/lib/resend.ts`              | Resend email confirmations                  |
+| `src/lib/resend.ts`              | Resend HTTP wrapper + guest email templates |
+| `src/lib/owner-email.ts`         | Owner alert templates (booking + contact)   |
 | `src/lib/validations/booking.ts` | Zod schema for bookings                     |
 | `src/lib/validations/contact.ts` | Zod schema for contact form                 |
 | `src/app/api/contact/route.ts`   | Contact form API                            |

@@ -1,28 +1,8 @@
-// Owner notifications via Cloudflare's send_email binding.
-// Recipients must be verified destination addresses in Cloudflare Email
-// Routing — this is fine for owner alerts but never use it for guest mail.
+// Owner notifications via Resend.
+// Cloudflare Pages does not support the send_email binding, so the same
+// HTTP-based provider is used for both guest and owner mail.
 
-interface SendEmailBinding {
-  send(builder: {
-    from: string;
-    to: string | string[];
-    subject: string;
-    replyTo?: string;
-    html?: string;
-    text?: string;
-  }): Promise<unknown>;
-}
-
-async function getBinding(): Promise<SendEmailBinding | null> {
-  try {
-    const mod = await import("@opennextjs/cloudflare");
-    const ctx = await mod.getCloudflareContext({ async: true });
-    const env = ctx.env as { SEND_EMAIL?: SendEmailBinding };
-    return env.SEND_EMAIL ?? null;
-  } catch {
-    return null;
-  }
-}
+import { sendEmail } from "@/lib/resend";
 
 interface OwnerEmailParams {
   subject: string;
@@ -31,19 +11,14 @@ interface OwnerEmailParams {
 }
 
 export async function sendOwnerEmail(params: OwnerEmailParams): Promise<void> {
-  const binding = await getBinding();
-  if (!binding) throw new Error("SEND_EMAIL binding unavailable (run via wrangler/Pages)");
-
   const to = process.env.OWNER_EMAIL;
   if (!to) throw new Error("OWNER_EMAIL not configured");
 
-  const from = process.env.OWNER_FROM_EMAIL ?? "noreply@pinkhousesamui.com";
-
-  await binding.send({
-    from,
+  await sendEmail({
     to,
     subject: params.subject,
     html: params.html,
+    from: process.env.OWNER_FROM_EMAIL,
     replyTo: params.replyTo,
   });
 }

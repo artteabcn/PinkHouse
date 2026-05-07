@@ -1,6 +1,12 @@
 const FROM = process.env.RESEND_FROM ?? "noreply@pinkhousesamui.com";
 
-async function sendEmail(payload: { to: string; subject: string; html: string }): Promise<void> {
+export async function sendEmail(payload: {
+  to: string;
+  subject: string;
+  html: string;
+  from?: string;
+  replyTo?: string;
+}): Promise<void> {
   const key = process.env.RESEND_API_KEY;
   if (!key) throw new Error("RESEND_API_KEY is not configured");
 
@@ -11,10 +17,11 @@ async function sendEmail(payload: { to: string; subject: string; html: string })
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: FROM,
+      from: payload.from ?? FROM,
       to: payload.to,
       subject: payload.subject,
       html: payload.html,
+      ...(payload.replyTo ? { reply_to: payload.replyTo } : {}),
     }),
   });
 
