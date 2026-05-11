@@ -220,6 +220,9 @@ export async function deleteImage(slot: string): Promise<string | null> {
 
 // Image slots the site renders. The admin UI iterates this list so new
 // slots show up automatically; pages read by slot via getImage()/getImageUrl().
+// Fallbacks must point at images that actually exist under /public/ so the
+// editor previews and the public pages both work before any override is
+// uploaded. Add a new slot here and the admin UI picks it up automatically.
 export const IMAGE_SLOTS: ReadonlyArray<{
   slot: string;
   label: string;
@@ -227,12 +230,11 @@ export const IMAGE_SLOTS: ReadonlyArray<{
 }> = [
   { slot: "logo", label: "Logo", fallback: "/logo.png" },
   { slot: "hero.main", label: "Hero (homepage)", fallback: "/images/main.jpeg" },
-  { slot: "about.main", label: "About section", fallback: "/images/about.jpeg" },
+  { slot: "about.main", label: "About section", fallback: "/images/main3.jpeg" },
   { slot: "rooms.standard.cover", label: "Standard room", fallback: "/images/room.jpeg" },
-  { slot: "gallery.0", label: "Gallery 1", fallback: "/images/gallery-1.jpeg" },
-  { slot: "gallery.1", label: "Gallery 2", fallback: "/images/gallery-2.jpeg" },
-  { slot: "gallery.2", label: "Gallery 3", fallback: "/images/gallery-3.jpeg" },
-  { slot: "gallery.3", label: "Gallery 4", fallback: "/images/gallery-4.jpeg" },
-  { slot: "gallery.4", label: "Gallery 5", fallback: "/images/gallery-5.jpeg" },
-  { slot: "gallery.5", label: "Gallery 6", fallback: "/images/gallery-6.jpeg" },
+  { slot: "gallery.0", label: "Gallery 1", fallback: "/images/main.jpeg" },
+  { slot: "gallery.1", label: "Gallery 2", fallback: "/images/main2.jpeg" },
+  { slot: "gallery.2", label: "Gallery 3", fallback: "/images/main3.jpeg" },
+  { slot: "gallery.3", label: "Gallery 4", fallback: "/images/main4.jpeg" },
+  { slot: "gallery.4", label: "Gallery 5", fallback: "/images/room.jpeg" },
 ];
