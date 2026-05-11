@@ -188,6 +188,8 @@
     "totalStayLabel": "Gesamter Aufenthalt",
     "nonRefundableNotice": "Diese Anzahlung ist nicht erstattungsfähig. Bei Stornierung oder Nichterscheinen wird die Anzahlung nicht zurückerstattet.",
     "acknowledgeNonRefundable": "Ich verstehe, dass die Anzahlung nicht erstattungsfähig ist.",
+    "acknowledgeRequired": "Bitte bestätigen Sie zuerst die nicht erstattungsfähige Anzahlung.",
+    "orPayWithCard": "Oder mit Karte zahlen",
     "payNow": "Anzahlung {amount} THB zahlen",
     "payProcessing": "Zahlung wird verarbeitet...",
     "paySecureNotice": "Zahlung über Stripe. Ihre Kartendaten erreichen unsere Server nicht.",

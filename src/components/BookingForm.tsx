@@ -7,8 +7,18 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ArrowLeft, BedDouble, Coffee, Eye, Loader2, Lock, Trees, Users, Wind } from "lucide-react";
-import { loadStripe, type Stripe as StripeJs } from "@stripe/stripe-js";
-import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
+import {
+  loadStripe,
+  type Stripe as StripeJs,
+  type StripeExpressCheckoutElementReadyEvent,
+} from "@stripe/stripe-js";
+import {
+  Elements,
+  ExpressCheckoutElement,
+  PaymentElement,
+  useElements,
+  useStripe,
+} from "@stripe/react-stripe-js";
 import { cn } from "@/lib/utils";
 import { APARTMENT_TO_ROOM_ID } from "@/config/smoobu";
 
@@ -648,7 +658,7 @@ function PaymentStep({
         >
           <PaymentInner
             amount={payment.depositAmount}
-            disabled={!acknowledged}
+            acknowledged={acknowledged}
             onAuthorized={onAuthorized}
           />
         </Elements>
@@ -664,13 +674,13 @@ function PaymentStep({
 
 interface PaymentInnerProps {
   amount: number;
-  disabled?: boolean;
+  acknowledged: boolean;
   onAuthorized: () => Promise<void>;
 }
 
 function PaymentInner({
   amount,
-  disabled = false,
+  acknowledged,
   onAuthorized,
 }: PaymentInnerProps): React.JSX.Element {
   const t = useTranslations("booking");
@@ -678,31 +688,50 @@ function PaymentInner({
   const elements = useElements();
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  // Whether Apple Pay / Google Pay / Link are actually available on this
+  // device — set by ExpressCheckoutElement's onReady. Used to hide the
+  // "or pay with card" separator when there's nothing above it.
+  const [walletsAvailable, setWalletsAvailable] = useState(false);
 
-  async function handlePay(e: React.FormEvent): Promise<void> {
-    e.preventDefault();
+  async function confirmAndAuthorize(): Promise<void> {
     if (!stripe || !elements) return;
+    const { error, paymentIntent } = await stripe.confirmPayment({
+      elements,
+      redirect: "if_required",
+    });
+    if (error) {
+      setErrorMsg(error.message ?? t("payError"));
+      setSubmitting(false);
+      return;
+    }
+    // With manual capture, a successful authorization lands in
+    // `requires_capture` (not `succeeded`) — capture happens server-side
+    // after Smoobu confirms the reservation.
+    if (paymentIntent && paymentIntent.status !== "requires_capture") {
+      setErrorMsg(t("payError"));
+      setSubmitting(false);
+      return;
+    }
+    await onAuthorized();
+  }
+
+  async function handleCardPay(e: React.FormEvent): Promise<void> {
+    e.preventDefault();
     setSubmitting(true);
     setErrorMsg(null);
     try {
-      const { error, paymentIntent } = await stripe.confirmPayment({
-        elements,
-        redirect: "if_required",
-      });
-      if (error) {
-        setErrorMsg(error.message ?? t("payError"));
-        setSubmitting(false);
-        return;
-      }
-      // With manual capture, a successful authorization lands in
-      // `requires_capture` (not `succeeded`) — capture happens server-side
-      // after Smoobu confirms the reservation.
-      if (paymentIntent && paymentIntent.status !== "requires_capture") {
-        setErrorMsg(t("payError"));
-        setSubmitting(false);
-        return;
-      }
-      await onAuthorized();
+      await confirmAndAuthorize();
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : t("payError"));
+      setSubmitting(false);
+    }
+  }
+
+  async function handleWalletConfirm(): Promise<void> {
+    setSubmitting(true);
+    setErrorMsg(null);
+    try {
+      await confirmAndAuthorize();
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : t("payError"));
       setSubmitting(false);
@@ -710,23 +739,60 @@ function PaymentInner({
   }
 
   return (
-    <form onSubmit={handlePay}>
-      <PaymentElement />
-      {errorMsg && <p className="mt-3 text-sm text-red-600">{errorMsg}</p>}
-      <button
-        type="submit"
-        disabled={!stripe || !elements || submitting || disabled}
-        className="btn-pill-primary mt-6 w-full disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-      >
-        {submitting ? (
-          <>
-            <Loader2 className="mr-2 size-4 animate-spin" />
-            {t("payProcessing")}
-          </>
-        ) : (
-          t("payNow", { amount: amount.toLocaleString() })
-        )}
-      </button>
-    </form>
+    <div>
+      <ExpressCheckoutElement
+        options={{
+          buttonHeight: 48,
+          buttonTheme: { applePay: "black", googlePay: "black" },
+          paymentMethods: { applePay: "auto", googlePay: "auto", link: "never" },
+          buttonType: { applePay: "buy", googlePay: "buy" },
+        }}
+        onReady={(event: StripeExpressCheckoutElementReadyEvent) => {
+          const methods = event.availablePaymentMethods;
+          setWalletsAvailable(Boolean(methods?.applePay || methods?.googlePay || methods?.link));
+        }}
+        onClick={({ resolve }) => {
+          if (!acknowledged) {
+            // Don't open the wallet sheet — show the same error message
+            // the card button would gate on. resolve() is intentionally
+            // not called.
+            setErrorMsg(t("acknowledgeRequired"));
+            return;
+          }
+          setErrorMsg(null);
+          resolve();
+        }}
+        onConfirm={handleWalletConfirm}
+      />
+
+      {walletsAvailable && (
+        <div className="my-6 flex items-center gap-3">
+          <div className="h-px flex-1 bg-black/10" />
+          <span className="text-brand-ink-soft text-[10px] tracking-[0.2em] uppercase">
+            {t("orPayWithCard")}
+          </span>
+          <div className="h-px flex-1 bg-black/10" />
+        </div>
+      )}
+
+      <form onSubmit={handleCardPay}>
+        <PaymentElement />
+        {errorMsg && <p className="mt-3 text-sm text-red-600">{errorMsg}</p>}
+        <button
+          type="submit"
+          disabled={!stripe || !elements || submitting || !acknowledged}
+          className="btn-pill-primary mt-6 w-full disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+        >
+          {submitting ? (
+            <>
+              <Loader2 className="mr-2 size-4 animate-spin" />
+              {t("payProcessing")}
+            </>
+          ) : (
+            t("payNow", { amount: amount.toLocaleString() })
+          )}
+        </button>
+      </form>
+    </div>
   );
 }

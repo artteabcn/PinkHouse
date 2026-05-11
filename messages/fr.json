@@ -184,6 +184,8 @@
     "totalStayLabel": "Total du séjour",
     "nonRefundableNotice": "Cet acompte est non remboursable. Aucun remboursement en cas d'annulation ou de non-présentation.",
     "acknowledgeNonRefundable": "Je comprends que l'acompte est non remboursable.",
+    "acknowledgeRequired": "Veuillez d'abord accepter la politique d'acompte non remboursable.",
+    "orPayWithCard": "Ou payer par carte",
     "payNow": "Verser l'acompte {amount} THB",
     "payProcessing": "Traitement du paiement...",
     "paySecureNotice": "Paiement sécurisé par Stripe. Vos coordonnées bancaires ne transitent jamais par nos serveurs.",
