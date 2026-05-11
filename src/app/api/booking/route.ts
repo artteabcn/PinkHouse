@@ -7,6 +7,8 @@ import { createReservation, SmoobuError } from "@/lib/smoobu";
 import { ROOM_TO_APARTMENT_ID, SMOOBU_CHANNEL_ID_DIRECT_WEBSITE } from "@/config/smoobu";
 import { getDbOrNull } from "@/lib/db/get-db";
 import { bookings } from "@/db/schema";
+import { retrievePaymentIntent, capturePaymentIntent, cancelPaymentIntent } from "@/lib/stripe";
+import type { Stripe } from "@/lib/stripe";
 
 function splitName(fullName: string): { firstName: string; lastName: string } {
   const trimmed = fullName.trim();
@@ -15,46 +17,28 @@ function splitName(fullName: string): { firstName: string; lastName: string } {
   return { firstName: parts[0], lastName: parts.slice(1).join(" ") };
 }
 
-async function insertLocal(data: BookingInput, apartmentId: number): Promise<number | null> {
-  const db = await getDbOrNull();
-  if (!db) return null;
-  const guests = data.adults + data.children;
-  const result = await db
-    .insert(bookings)
-    .values({
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      roomId: data.roomId,
-      checkIn: data.checkIn,
-      checkOut: data.checkOut,
-      guests,
-      notes: data.notes,
-      smoobuApartmentId: apartmentId,
-      channelId: SMOOBU_CHANNEL_ID_DIRECT_WEBSITE,
-      totalPrice: data.totalPrice,
-      currency: "THB",
-      locale: data.locale,
-    })
-    .returning({ id: bookings.id });
-  return result[0]?.id ?? null;
-}
-
-async function markBookingStatus(
-  localId: number,
-  status: "confirmed" | "failed",
-  smoobuReservationId?: number
+async function updateBooking(
+  bookingId: number,
+  patch: Partial<typeof bookings.$inferInsert>
 ): Promise<void> {
   const db = await getDbOrNull();
   if (!db) return;
   await db
     .update(bookings)
-    .set({
-      status,
-      smoobuReservationId: smoobuReservationId ?? null,
-      updatedAt: new Date().toISOString(),
-    })
-    .where(eq(bookings.id, localId));
+    .set({ ...patch, updatedAt: new Date().toISOString() })
+    .where(eq(bookings.id, bookingId));
+}
+
+function intentMatchesBooking(intent: Stripe.PaymentIntent, parsed: BookingInput): boolean {
+  const meta = intent.metadata ?? {};
+  const apartmentId = parsed.apartmentId ?? ROOM_TO_APARTMENT_ID[parsed.roomId];
+  if (!apartmentId) return false;
+  if (meta.apartmentId !== String(apartmentId)) return false;
+  if (meta.checkIn !== parsed.checkIn || meta.checkOut !== parsed.checkOut) return false;
+  if (meta.guestEmail && meta.guestEmail.toLowerCase() !== parsed.email.toLowerCase()) {
+    return false;
+  }
+  return true;
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
@@ -75,7 +59,36 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "Unknown room" }, { status: 400 });
   }
 
-  const localId = await insertLocal(parsed, apartmentId);
+  // Stripe authorization must already be in place. We check status, match the
+  // intent's metadata against the submitted booking (anti-tamper), then capture
+  // only after Smoobu accepts the reservation.
+  let intent: Stripe.PaymentIntent;
+  try {
+    intent = await retrievePaymentIntent(parsed.paymentIntentId);
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    console.error("Stripe retrieve failed:", detail);
+    return NextResponse.json({ error: "Payment not found" }, { status: 400 });
+  }
+
+  if (intent.status !== "requires_capture") {
+    return NextResponse.json(
+      { error: "Payment not authorized", paymentStatus: intent.status },
+      { status: 409 }
+    );
+  }
+
+  if (!intentMatchesBooking(intent, parsed)) {
+    return NextResponse.json({ error: "Payment / booking mismatch" }, { status: 400 });
+  }
+
+  // totalPrice (full stay) is sent by the client and used for Smoobu reservation.
+  // The Stripe intent only holds the deposit; the metadata stores the full price.
+  const totalThb =
+    parsed.totalPrice ?? Number(intent.metadata?.fullPriceThb ?? Math.round(intent.amount / 100));
+  const depositThb = Math.round(intent.amount / 100);
+  const balanceThb = Math.max(0, totalThb - depositThb);
+  const localId = parsed.bookingId ?? null;
 
   let smoobuReservationId: number | undefined;
   try {
@@ -91,13 +104,24 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       phone: parsed.phone,
       adults: parsed.adults,
       children: parsed.children,
-      price: parsed.totalPrice,
+      price: totalThb,
       language: parsed.locale,
       notice: parsed.notes,
     });
     smoobuReservationId = reservation.id;
   } catch (err) {
-    if (localId !== null) await markBookingStatus(localId, "failed");
+    // Smoobu rejected: release the Stripe authorization and surface 502.
+    try {
+      await cancelPaymentIntent(parsed.paymentIntentId, "abandoned");
+    } catch (cancelErr) {
+      console.error(
+        "Stripe cancel after Smoobu failure also failed:",
+        cancelErr instanceof Error ? cancelErr.message : cancelErr
+      );
+    }
+    if (localId !== null) {
+      await updateBooking(localId, { status: "failed", paymentStatus: "failed" });
+    }
     if (err instanceof SmoobuError) {
       return NextResponse.json(
         { error: "Reservation could not be created", status: err.status },
@@ -107,8 +131,42 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 
+  // Smoobu accepted — capture the held funds.
+  let captured: Stripe.PaymentIntent | null = null;
+  try {
+    captured = await capturePaymentIntent(parsed.paymentIntentId);
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    // Reservation exists in Smoobu but Stripe capture failed. Don't roll back
+    // Smoobu — flag for manual review and let the webhook reconcile.
+    console.error("Stripe capture failed after Smoobu reservation:", detail);
+    if (localId !== null) {
+      await updateBooking(localId, {
+        status: "confirmed",
+        paymentStatus: "authorized",
+        smoobuReservationId,
+      });
+    }
+    return NextResponse.json(
+      {
+        error: "Payment hold could not be captured — booking saved, our team will follow up",
+        reservationId: smoobuReservationId,
+        bookingId: localId,
+      },
+      { status: 202 }
+    );
+  }
+
+  // captured.amount is in satang — store THB in D1 for consistency with totalPrice.
+  const capturedThb = Math.round((captured.amount_received ?? captured.amount) / 100);
+
   if (localId !== null) {
-    await markBookingStatus(localId, "confirmed", smoobuReservationId);
+    await updateBooking(localId, {
+      status: "confirmed",
+      paymentStatus: "paid",
+      smoobuReservationId,
+      amountPaid: capturedThb,
+    });
   }
 
   const roomName = parsed.roomId === "standard" ? "Standard Room" : parsed.roomId;
@@ -125,7 +183,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         checkOut: parsed.checkOut,
         guests,
         notes: parsed.notes,
-        totalPrice: parsed.totalPrice,
+        totalPrice: totalThb,
+        depositPaid: capturedThb,
+        balanceDue: balanceThb,
         reservationId: smoobuReservationId,
       })
     ),
@@ -136,6 +196,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       checkIn: parsed.checkIn,
       checkOut: parsed.checkOut,
       guests,
+      totalPrice: totalThb,
+      depositPaid: capturedThb,
+      balanceDue: balanceThb,
     }),
   ]);
 
@@ -157,6 +220,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     ok: true,
     reservationId: smoobuReservationId,
     bookingId: localId,
+    paymentStatus: "paid",
+    depositPaid: capturedThb,
+    balanceDue: balanceThb,
     ...(Object.keys(warnings).length > 0 ? { warnings } : {}),
   });
 }

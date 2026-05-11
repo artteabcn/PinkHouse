@@ -19,6 +19,13 @@ export const bookings = sqliteTable("bookings", {
   channelId: integer("channel_id"),
   totalPrice: integer("total_price"),
   currency: text("currency").default("THB"),
+  paymentStatus: text("payment_status", {
+    enum: ["pending", "authorized", "paid", "refunded", "failed"],
+  })
+    .notNull()
+    .default("pending"),
+  stripePaymentIntentId: text("stripe_payment_intent_id"),
+  amountPaid: integer("amount_paid"),
   locale: text("locale").notNull().default("en"),
   createdAt: text("created_at")
     .notNull()

@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useTranslations, useLocale } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowLeft, BedDouble, Coffee, Eye, Loader2, Trees, Users, Wind } from "lucide-react";
+import { ArrowLeft, BedDouble, Coffee, Eye, Loader2, Lock, Trees, Users, Wind } from "lucide-react";
+import { loadStripe, type Stripe as StripeJs } from "@stripe/stripe-js";
+import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import { cn } from "@/lib/utils";
 import { APARTMENT_TO_ROOM_ID } from "@/config/smoobu";
 
@@ -42,7 +44,7 @@ const GuestSchema = z.object({
 
 type GuestInput = z.infer<typeof GuestSchema>;
 
-type Step = "search" | "results" | "guest" | "success" | "error";
+type Step = "search" | "results" | "guest" | "payment" | "success" | "error";
 
 const inputClass =
   "focus:border-brand-pink w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm transition-colors outline-none";
@@ -56,6 +58,26 @@ interface RoomCopy {
   beds: string;
   view: string;
   maxGuests: number;
+}
+
+interface PaymentSession {
+  clientSecret: string;
+  paymentIntentId: string;
+  bookingId: number | null;
+  depositAmount: number;
+  balanceDue: number;
+  totalAmount: number;
+  depositPercent: number;
+}
+
+// loadStripe must run only once per page load — pull the publishable key at
+// module scope and cache the promise.
+const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+let stripePromise: Promise<StripeJs | null> | null = null;
+function getStripe(): Promise<StripeJs | null> {
+  if (!PUBLISHABLE_KEY) return Promise.resolve(null);
+  if (!stripePromise) stripePromise = loadStripe(PUBLISHABLE_KEY);
+  return stripePromise;
 }
 
 export default function BookingForm(): React.JSX.Element {
@@ -77,6 +99,8 @@ export default function BookingForm(): React.JSX.Element {
   const [available, setAvailable] = useState<AvailableRoom[]>([]);
   const [criteria, setCriteria] = useState<SearchInput | null>(null);
   const [selected, setSelected] = useState<AvailableRoom | null>(null);
+  const [guestData, setGuestData] = useState<GuestInput | null>(null);
+  const [payment, setPayment] = useState<PaymentSession | null>(null);
   const [reservationId, setReservationId] = useState<number | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
 
@@ -122,11 +146,11 @@ export default function BookingForm(): React.JSX.Element {
     }
   }
 
-  async function onConfirm(data: GuestInput): Promise<void> {
+  async function onGuestSubmit(data: GuestInput): Promise<void> {
     if (!criteria || !selected) return;
     try {
       const roomId = selected.roomId ?? APARTMENT_TO_ROOM_ID[selected.apartmentId] ?? "standard";
-      const res = await fetch("/api/booking", {
+      const res = await fetch("/api/payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -137,8 +161,39 @@ export default function BookingForm(): React.JSX.Element {
           checkOut: criteria.checkOut,
           adults: criteria.adults,
           children: criteria.children,
-          totalPrice: selected.totalPrice ?? undefined,
           locale,
+        }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = (await res.json()) as PaymentSession;
+      setGuestData(data);
+      setPayment(json);
+      setStep("payment");
+    } catch (err) {
+      setErrorDetail(err instanceof Error ? err.message : "unknown");
+      setStep("error");
+    }
+  }
+
+  async function onPaymentAuthorized(): Promise<void> {
+    if (!criteria || !selected || !guestData || !payment) return;
+    try {
+      const roomId = selected.roomId ?? APARTMENT_TO_ROOM_ID[selected.apartmentId] ?? "standard";
+      const res = await fetch("/api/booking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...guestData,
+          roomId,
+          apartmentId: selected.apartmentId,
+          checkIn: criteria.checkIn,
+          checkOut: criteria.checkOut,
+          adults: criteria.adults,
+          children: criteria.children,
+          totalPrice: payment.totalAmount,
+          locale,
+          paymentIntentId: payment.paymentIntentId,
+          bookingId: payment.bookingId,
         }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -186,6 +241,7 @@ export default function BookingForm(): React.JSX.Element {
           type="button"
           onClick={() => {
             setErrorDetail(null);
+            setPayment(null);
             setStep("search");
           }}
           className="btn-pill-outline mt-6"
@@ -385,7 +441,7 @@ export default function BookingForm(): React.JSX.Element {
       )}
 
       {step === "guest" && criteria && selected && (
-        <form onSubmit={guest.handleSubmit(onConfirm)}>
+        <form onSubmit={guest.handleSubmit(onGuestSubmit)}>
           <button
             type="button"
             onClick={() => setStep("results")}
@@ -475,6 +531,202 @@ export default function BookingForm(): React.JSX.Element {
           </button>
         </form>
       )}
+
+      {step === "payment" && criteria && selected && payment && (
+        <PaymentStep
+          payment={payment}
+          summary={{
+            roomLabel:
+              (selected.roomId && roomCopyById[selected.roomId]?.name) ??
+              `Apartment ${selected.apartmentId}`,
+            checkIn: criteria.checkIn,
+            checkOut: criteria.checkOut,
+            guests: criteria.adults + criteria.children,
+          }}
+          onBack={() => setStep("guest")}
+          onAuthorized={onPaymentAuthorized}
+        />
+      )}
     </div>
+  );
+}
+
+interface PaymentStepProps {
+  payment: PaymentSession;
+  summary: { roomLabel: string; checkIn: string; checkOut: string; guests: number };
+  onBack: () => void;
+  onAuthorized: () => Promise<void>;
+}
+
+function PaymentStep({
+  payment,
+  summary,
+  onBack,
+  onAuthorized,
+}: PaymentStepProps): React.JSX.Element {
+  const t = useTranslations("booking");
+  const stripeP = useMemo(() => getStripe(), []);
+  const [acknowledged, setAcknowledged] = useState(false);
+
+  if (!PUBLISHABLE_KEY) {
+    return (
+      <div className="bg-brand-blush rounded-xl p-5 text-sm text-red-600">
+        Stripe publishable key is not configured.
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={onBack}
+        className="text-brand-ink-soft hover:text-brand-pink mb-6 inline-flex items-center gap-2 text-sm"
+      >
+        <ArrowLeft className="size-4" />
+        {t("back")}
+      </button>
+
+      <div className="bg-brand-blush rounded-xl p-5">
+        <p className="section-label">{t("summary")}</p>
+        <p className="text-brand-ink mt-2 font-serif text-lg">{summary.roomLabel}</p>
+        <p className="text-brand-ink-soft mt-1 text-sm">
+          {summary.checkIn} → {summary.checkOut} · {summary.guests} {t("adults")}
+        </p>
+        <div className="mt-4 grid gap-1.5 border-t border-black/5 pt-4 text-sm">
+          <div className="text-brand-ink-soft flex justify-between">
+            <span>{t("totalStayLabel")}</span>
+            <span>{payment.totalAmount.toLocaleString()} THB</span>
+          </div>
+          <div className="text-brand-teal flex justify-between font-semibold">
+            <span>{t("depositLabel", { percent: payment.depositPercent })}</span>
+            <span>{payment.depositAmount.toLocaleString()} THB</span>
+          </div>
+          <div className="text-brand-ink-soft flex justify-between">
+            <span>{t("balanceDueLabel")}</span>
+            <span>{payment.balanceDue.toLocaleString()} THB</span>
+          </div>
+        </div>
+      </div>
+
+      <h3 className="text-brand-ink mt-8 font-serif text-2xl font-semibold">{t("paymentTitle")}</h3>
+      <p className="text-brand-ink-soft mt-2 text-sm">
+        {t("paymentSubtitle", { percent: payment.depositPercent })}
+      </p>
+
+      <div className="bg-brand-blush text-brand-ink mt-5 rounded-xl p-4 text-xs leading-5">
+        {t("nonRefundableNotice")}
+      </div>
+
+      <label className="mt-4 flex items-start gap-2.5 text-sm">
+        <input
+          type="checkbox"
+          checked={acknowledged}
+          onChange={(e) => setAcknowledged(e.target.checked)}
+          className="accent-brand-pink mt-0.5 size-4 shrink-0 cursor-pointer"
+        />
+        <span className="text-brand-ink">{t("acknowledgeNonRefundable")}</span>
+      </label>
+
+      <div className="mt-6">
+        <Elements
+          stripe={stripeP}
+          options={{
+            clientSecret: payment.clientSecret,
+            appearance: {
+              theme: "flat",
+              variables: {
+                colorPrimary: "#dc4080",
+                colorText: "#0f7b6e",
+                colorBackground: "#ffffff",
+                fontFamily: "Outfit, system-ui, sans-serif",
+                borderRadius: "12px",
+                spacingUnit: "4px",
+              },
+            },
+          }}
+        >
+          <PaymentInner
+            amount={payment.depositAmount}
+            disabled={!acknowledged}
+            onAuthorized={onAuthorized}
+          />
+        </Elements>
+      </div>
+
+      <p className="text-brand-ink-soft mt-4 inline-flex items-center gap-1.5 text-xs">
+        <Lock className="size-3.5" />
+        {t("paySecureNotice")}
+      </p>
+    </div>
+  );
+}
+
+interface PaymentInnerProps {
+  amount: number;
+  disabled?: boolean;
+  onAuthorized: () => Promise<void>;
+}
+
+function PaymentInner({
+  amount,
+  disabled = false,
+  onAuthorized,
+}: PaymentInnerProps): React.JSX.Element {
+  const t = useTranslations("booking");
+  const stripe = useStripe();
+  const elements = useElements();
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  async function handlePay(e: React.FormEvent): Promise<void> {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+    setSubmitting(true);
+    setErrorMsg(null);
+    try {
+      const { error, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        redirect: "if_required",
+      });
+      if (error) {
+        setErrorMsg(error.message ?? t("payError"));
+        setSubmitting(false);
+        return;
+      }
+      // With manual capture, a successful authorization lands in
+      // `requires_capture` (not `succeeded`) — capture happens server-side
+      // after Smoobu confirms the reservation.
+      if (paymentIntent && paymentIntent.status !== "requires_capture") {
+        setErrorMsg(t("payError"));
+        setSubmitting(false);
+        return;
+      }
+      await onAuthorized();
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : t("payError"));
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handlePay}>
+      <PaymentElement />
+      {errorMsg && <p className="mt-3 text-sm text-red-600">{errorMsg}</p>}
+      <button
+        type="submit"
+        disabled={!stripe || !elements || submitting || disabled}
+        className="btn-pill-primary mt-6 w-full disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+      >
+        {submitting ? (
+          <>
+            <Loader2 className="mr-2 size-4 animate-spin" />
+            {t("payProcessing")}
+          </>
+        ) : (
+          t("payNow", { amount: amount.toLocaleString() })
+        )}
+      </button>
+    </form>
   );
 }

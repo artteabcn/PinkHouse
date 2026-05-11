@@ -61,16 +61,19 @@ Design reference: Orchid Lodge Samui (orchidlodgesamui.com) — boutique tropica
 
 Set in Cloudflare Pages dashboard for production. Copy `.env.example` → `.env.local` for dev.
 
-| Variable                    | Purpose                                                                                    |
-| --------------------------- | ------------------------------------------------------------------------------------------ |
-| `RESEND_API_KEY`            | Resend — guest confirmations + owner alerts (single provider)                              |
-| `RESEND_FROM`               | Default from-address for guest mail; must be on a verified Resend domain                   |
-| `OWNER_EMAIL`               | Destination address for booking + contact form notifications                               |
-| `OWNER_FROM_EMAIL`          | From-address for owner alerts (also a verified Resend domain); falls back to `RESEND_FROM` |
-| `SMOOBU_API_KEY`            | Smoobu REST API key — server-side only (Settings → API in Smoobu)                          |
-| `CLOUDFLARE_ACCOUNT_ID`     | For drizzle-kit remote migrations                                                          |
-| `CLOUDFLARE_D1_DATABASE_ID` | D1 database ID                                                                             |
-| `CLOUDFLARE_API_TOKEN`      | For drizzle-kit remote migrations                                                          |
+| Variable                             | Purpose                                                                                                 |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `RESEND_API_KEY`                     | Resend — guest confirmations + owner alerts (single provider)                                           |
+| `RESEND_FROM`                        | Default from-address for guest mail; must be on a verified Resend domain                                |
+| `OWNER_EMAIL`                        | Destination address for booking + contact form notifications                                            |
+| `OWNER_FROM_EMAIL`                   | From-address for owner alerts (also a verified Resend domain); falls back to `RESEND_FROM`              |
+| `SMOOBU_API_KEY`                     | Smoobu REST API key — server-side only (Settings → API in Smoobu)                                       |
+| `CLOUDFLARE_ACCOUNT_ID`              | For drizzle-kit remote migrations                                                                       |
+| `CLOUDFLARE_D1_DATABASE_ID`          | D1 database ID                                                                                          |
+| `CLOUDFLARE_API_TOKEN`               | For drizzle-kit remote migrations                                                                       |
+| `STRIPE_SECRET_KEY`                  | Stripe server secret (sk*live*… / sk*test*…) — used by `/api/payment-intent` + `/api/booking` + webhook |
+| `STRIPE_WEBHOOK_SECRET`              | Endpoint signing secret from Stripe Dashboard → Developers → Webhooks                                   |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Publishable key — exposed to the browser via NEXT*PUBLIC* prefix                                        |
 
 ---
 
@@ -83,15 +86,24 @@ Native booking flow on `/book` (no iframe widget — uses Smoobu's REST API dire
 - Channel ID for direct-website reservations: **5722806**
 - Apartment IDs: `3040751, 3040756, 3040766, 3040771, 3040776, 3040781` — all six are the same room type (`standard`). `APARTMENT_TO_ROOM_ID` in `src/config/smoobu.ts` maps every apartment to `"standard"`; if a new room type is ever added, update that map first and the booking pipeline picks it up automatically (Zod uses `z.string()`, the API resolves apartment ↔ roomId via the config).
 
+**Charge model:** 50% **non-refundable deposit** collected at booking time (in THB) via Stripe. Balance is paid on arrival in cash or by card. The percentage lives in `src/config/payments.ts` (`DEPOSIT_PERCENT`) — flip that constant to change the split. The non-refundability is enforced by a required acknowledgement checkbox at the payment step + matching copy in all four locales; Stripe itself can still issue refunds from the dashboard at the owner's discretion.
+
 **Booking flow:**
 
 1. `BookingForm.tsx` (client) → `POST /api/availability` with date range + guests
-2. Server calls `checkApartmentAvailability` and `getRates` on Smoobu, returns available apartments + total price
+2. Server calls `getRates` on Smoobu, returns available apartments + total price
 3. User selects an apartment, fills guest details
-4. `POST /api/booking` validates with Zod, inserts into D1, calls `createReservation` on Smoobu, updates D1 row with reservation ID, fires owner alert + guest confirmation (both via Resend)
-5. If Smoobu fails: D1 row is marked `status: "failed"`; the API returns 502 so the user can retry
+4. Form submits to `POST /api/payment-intent`: server re-prices via Smoobu (anti-tamper), inserts a pending D1 row with `paymentStatus: "pending"` and `amountPaid = deposit` (set tentatively, finalized at capture), creates a Stripe `PaymentIntent` with `capture_method: "manual"` for the **deposit only** in THB, returns `{ clientSecret, paymentIntentId, bookingId, depositAmount, balanceDue, totalAmount, depositPercent }`
+5. Client mounts `<Elements clientSecret>` + `<PaymentElement />`, shows total / deposit / balance breakdown + non-refundable acknowledgement checkbox (required), then calls `stripe.confirmPayment({ redirect: "if_required" })` — on success the intent is in `requires_capture` (deposit held, not yet charged)
+6. Client posts to `POST /api/booking` with `{ ...guestData, paymentIntentId, bookingId, totalPrice }` (full stay price for Smoobu)
+7. Server retrieves the intent, verifies `requires_capture` + metadata match, calls Smoobu `createReservation` with the **full stay price** (so Smoobu knows the total even though we only captured the deposit)
+8. On Smoobu success: server captures the intent (deposit), updates D1 `paymentStatus: "paid"` + `amountPaid = capturedThb`, fires owner + guest emails listing total stay / deposit paid / balance due on arrival
+9. On Smoobu failure: server **cancels** the intent (releases the deposit hold so the guest is never charged), marks D1 `status: "failed"` / `paymentStatus: "failed"`, returns 502
+10. `POST /api/stripe/webhook` defensively syncs D1 on `payment_intent.succeeded|canceled|payment_failed` and `charge.refunded` (in case capture/cancel calls don't go through cleanly)
 
-**Local development**: D1 is unavailable under `next dev`; the booking route silently skips D1 inserts and only calls Smoobu + notifications. Use `pnpm preview` (wrangler) for full local D1 testing.
+Note: the `amountPaid` column in `bookings` always stores the deposit captured, never the full stay total. `totalPrice` stores the full stay.
+
+**Local development**: D1 is unavailable under `next dev`; the payment-intent + booking routes silently skip D1 inserts/updates while still calling Stripe and Smoobu. Use `pnpm preview` (wrangler) for full local D1 testing. Test the Stripe webhook locally with `stripe listen --forward-to localhost:8788/api/stripe/webhook`.
 
 ---
 
@@ -107,23 +119,28 @@ The displayed "from" price lives in `messages/*.json` (`rooms.items[0].price`) a
 
 ## Key Files
 
-| File                             | Purpose                                     |
-| -------------------------------- | ------------------------------------------- |
-| `src/db/schema.ts`               | Drizzle schema — bookings + contacts tables |
-| `src/middleware.ts`              | next-intl edge middleware (i18n routing)    |
-| `src/lib/resend.ts`              | Resend HTTP wrapper + guest email templates |
-| `src/lib/owner-email.ts`         | Owner alert templates (booking + contact)   |
-| `src/lib/validations/booking.ts` | Zod schema for bookings                     |
-| `src/lib/validations/contact.ts` | Zod schema for contact form                 |
-| `src/app/api/contact/route.ts`   | Contact form API                            |
-| `src/app/api/booking/route.ts`   | Booking API                                 |
-| `messages/*.json`                | i18n strings — en/fr/de/th (incl. `seo.*`)  |
-| `wrangler.toml`                  | Cloudflare D1 + Pages config                |
-| `open-next.config.ts`            | OpenNext Cloudflare adapter config          |
-| `src/config/site.ts`             | Single source of truth for SEO/JSON-LD      |
-| `src/components/SocialIcons.tsx` | Inline FB/IG SVGs + `SOCIAL_LINKS`          |
-| `src/app/robots.ts`              | Robots config (allows all, disallows /api/) |
-| `src/app/sitemap.ts`             | Sitemap (4 locales × all routes + hreflang) |
+| File                                    | Purpose                                                                                              |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `src/db/schema.ts`                      | Drizzle schema — bookings + contacts tables                                                          |
+| `src/middleware.ts`                     | next-intl edge middleware (i18n routing)                                                             |
+| `src/lib/resend.ts`                     | Resend HTTP wrapper + guest email templates                                                          |
+| `src/lib/owner-email.ts`                | Owner alert templates (booking + contact)                                                            |
+| `src/lib/validations/booking.ts`        | Zod schema for bookings                                                                              |
+| `src/lib/validations/contact.ts`        | Zod schema for contact form                                                                          |
+| `src/app/api/contact/route.ts`          | Contact form API                                                                                     |
+| `src/app/api/booking/route.ts`          | Booking API                                                                                          |
+| `messages/*.json`                       | i18n strings — en/fr/de/th (incl. `seo.*`)                                                           |
+| `wrangler.toml`                         | Cloudflare D1 + Pages config                                                                         |
+| `open-next.config.ts`                   | OpenNext Cloudflare adapter config                                                                   |
+| `src/config/site.ts`                    | Single source of truth for SEO/JSON-LD                                                               |
+| `src/components/SocialIcons.tsx`        | Inline FB/IG SVGs + `SOCIAL_LINKS`                                                                   |
+| `src/app/robots.ts`                     | Robots config (allows all, disallows /api/)                                                          |
+| `src/app/sitemap.ts`                    | Sitemap (4 locales × all routes + hreflang)                                                          |
+| `src/lib/stripe.ts`                     | Server Stripe client (edge fetch http client)                                                        |
+| `src/lib/validations/payment-intent.ts` | Zod schema for `/api/payment-intent` input                                                           |
+| `src/app/api/payment-intent/route.ts`   | Re-prices via Smoobu, inserts pending D1 row, creates manual-capture intent for the deposit          |
+| `src/app/api/stripe/webhook/route.ts`   | Defensive D1 sync on succeeded/canceled/refunded                                                     |
+| `src/config/payments.ts`                | `DEPOSIT_PERCENT` + `depositAmount()` / `balanceDue()` helpers (charge-split single source of truth) |
 
 ---
 

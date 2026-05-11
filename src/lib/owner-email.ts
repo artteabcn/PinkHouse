@@ -42,9 +42,13 @@ export function bookingOwnerEmail(data: {
   guests: number;
   notes?: string;
   totalPrice?: number;
+  depositPaid?: number;
+  balanceDue?: number;
   reservationId?: number;
 }): { subject: string; html: string; replyTo: string } {
-  const subject = `New booking — ${data.name} — ${data.checkIn} → ${data.checkOut}`;
+  const hasDeposit = data.depositPaid !== undefined && data.depositPaid > 0;
+  const prefix = hasDeposit ? "New booking (deposit paid)" : "New booking";
+  const subject = `${prefix} — ${data.name} — ${data.checkIn} → ${data.checkOut}`;
   const rows: [string, string][] = [
     ["Guest", data.name],
     ["Email", data.email],
@@ -55,7 +59,13 @@ export function bookingOwnerEmail(data: {
     ["Guests", String(data.guests)],
   ];
   if (data.totalPrice !== undefined) {
-    rows.push(["Total", `${data.totalPrice.toLocaleString()} THB`]);
+    rows.push(["Total stay", `${data.totalPrice.toLocaleString()} THB`]);
+  }
+  if (hasDeposit && data.depositPaid !== undefined) {
+    rows.push(["Deposit paid", `${data.depositPaid.toLocaleString()} THB`]);
+  }
+  if (data.balanceDue !== undefined && data.balanceDue > 0) {
+    rows.push(["Balance due on arrival", `${data.balanceDue.toLocaleString()} THB`]);
   }
   if (data.reservationId !== undefined) {
     rows.push(["Smoobu reservation", `#${data.reservationId}`]);

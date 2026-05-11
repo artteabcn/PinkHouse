@@ -24,7 +24,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "eslint --max-warnings 0 --fix",
+      "eslint --max-warnings 0 --no-warn-ignored --fix",
       "prettier --write"
     ],
     "*.{json,md,css,mjs}": [
@@ -42,6 +42,8 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@stripe/react-stripe-js": "^6.3.0",
+    "@stripe/stripe-js": "^9.4.0",
     "@tailwindcss/postcss": "^4.2.4",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
@@ -53,6 +55,7 @@
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-hook-form": "^7.73.1",
+    "stripe": "^22.1.1",
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.2.4",
     "zod": "^4.3.6"

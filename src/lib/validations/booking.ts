@@ -16,6 +16,8 @@ export const BookingSchema = z
     totalPrice: z.coerce.number().int().nonnegative().optional(),
     locale: z.string().min(2).max(5).default("en"),
     notes: z.string().optional(),
+    paymentIntentId: z.string().startsWith("pi_"),
+    bookingId: z.coerce.number().int().positive().nullable().optional(),
   })
   .refine((data) => data.checkOut > data.checkIn, {
     message: "Check-out must be after check-in",
