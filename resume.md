@@ -1,6 +1,6 @@
 # Pink House — Project Resume
 
-Last updated: 2026-05-11
+Last updated: 2026-05-11 (v2)
 
 A boutique B&B website for Pink House Koh Samui (Lamai). Marketing site
 
@@ -121,9 +121,40 @@ On Smoobu failure the intent is **canceled** so the guest is never charged.
 
 ---
 
+## Hidden admin / CMS (`/content`)
+
+Three-email admin panel for editing site content without commits/deploys.
+
+- **Auth:** Cloudflare Access at the edge — emails `greg@arkadya.tech`,
+  `bradley@arkadya.tech`, `pinkhouse.lamai@gmail.com`. Configured once in
+  the Zero Trust dashboard; app verifies the CF Access JWT for defense in
+  depth. Dev bypass returns `dev@local`.
+- **Storage:** D1 `content_overrides` (text by locale+path) and
+  `content_images` (slot → R2 key). Migration `0003`.
+- **R2:** `pinkhouse-media` bucket bound as `MEDIA`. Public URL set in
+  `MEDIA_PUBLIC_URL` env var.
+- **Read path:** `src/i18n/request.ts` deep-merges D1 overrides into the
+  shipped messages JSON at SSR. Pages call `getImageUrl(slot, fallback)`
+  for images. Missing overrides silently use defaults — CMS layer never
+  breaks the public site.
+- **Editable surfaces (v1):** hero/about/amenities/gallery/contact text,
+  rooms.items.0 (name/description/beds/view/price), gallery features,
+  10 image slots (logo, hero.main, about.main, rooms.standard.cover,
+  gallery.0..5).
+- **Setup steps for go-live** (see CLAUDE.md → "CMS / Admin Panel"):
+  - Apply `drizzle/0003_handy_solo.sql` to remote D1
+  - `wrangler r2 bucket create pinkhouse-media` + enable public access
+  - Set Pages env vars: `MEDIA_PUBLIC_URL`, `CF_ACCESS_TEAM_DOMAIN`,
+    `CF_ACCESS_AUD`
+  - Add Cloudflare Access application covering `/content/*` +
+    `/api/admin/*` with the 3-email policy
+
+---
+
 ## Recent commits
 
 ```
+(uncommitted) feat(cms): /content admin panel (Cloudflare Access + D1 overrides + R2 media)
 (uncommitted) feat(payments): switch to 50% non-refundable deposit
 (uncommitted) feat(payments): Stripe full prepayment with auth → Smoobu → capture
 746328c docs: refresh resume.md, add Stripe payment as next-session task

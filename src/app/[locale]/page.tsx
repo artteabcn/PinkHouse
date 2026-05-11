@@ -12,6 +12,7 @@ import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { SITE, SITE_URL, alternateLanguages, localePath } from "@/config/site";
+import { getImageUrl } from "@/lib/content";
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -98,10 +99,11 @@ function LodgingJsonLd({ locale }: { locale: string }): React.JSX.Element {
 
 export default async function HomePage({ params }: PageProps): Promise<React.JSX.Element> {
   const { locale } = await params;
+  const logoUrl = await getImageUrl("logo", "/logo.png");
   return (
     <main>
       <LodgingJsonLd locale={locale} />
-      <Nav />
+      <Nav logoUrl={logoUrl} />
       <HeroSection />
       <AboutSection />
       <RoomsSection />

@@ -10,7 +10,11 @@ import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import LanguageSelector from "./LanguageSelector";
 
-export default function Nav(): React.JSX.Element {
+interface NavProps {
+  logoUrl?: string;
+}
+
+export default function Nav({ logoUrl = "/logo.png" }: NavProps): React.JSX.Element {
   const t = useTranslations("nav");
   const locale = useLocale();
   const pathname = usePathname();
@@ -52,11 +56,12 @@ export default function Nav(): React.JSX.Element {
       <div className="mx-auto flex max-w-7xl items-center justify-between px-8 py-5">
         <Link href={homeHref} aria-label="Pink House home" className="block">
           <Image
-            src="/logo.png"
+            src={logoUrl}
             alt="Pink House Koh Samui"
             width={1024}
             height={1069}
             priority
+            unoptimized
             className={cn(
               "h-12 w-auto rounded-xl shadow-sm transition-all md:h-14",
               scrolled ? "ring-1 ring-black/5" : "ring-2 ring-white/30"

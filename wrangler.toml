@@ -10,5 +10,13 @@ database_name = "pinkhouse"
 database_id = "cdcfa781-8317-4e85-87fe-6579d0671b81"
 migrations_dir = "drizzle"
 
+# CMS media bucket — created once via:
+#   wrangler r2 bucket create pinkhouse-media
+# Public objects are served from MEDIA_PUBLIC_URL (env var pointing at the
+# R2 public bucket URL or a custom domain like media.pinkhousekohsamui.com).
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "pinkhouse-media"
+
 [dev]
 port = 8788

@@ -1,22 +1,25 @@
 import React from "react";
 import Image from "next/image";
 import { FacebookIcon, InstagramIcon, SOCIAL_LINKS } from "@/components/SocialIcons";
+import { getImageUrl } from "@/lib/content";
 
-export default function Footer(): React.JSX.Element {
+export default async function Footer(): Promise<React.JSX.Element> {
   const socials = [
     { href: SOCIAL_LINKS.facebook, label: "Facebook", Icon: FacebookIcon },
     { href: SOCIAL_LINKS.instagram, label: "Instagram", Icon: InstagramIcon },
   ];
+  const logoSrc = await getImageUrl("logo", "/logo.png");
 
   return (
     <footer className="bg-brand-charcoal py-12 text-white">
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-6 px-8">
         <Image
-          src="/logo.png"
+          src={logoSrc}
           alt="Pink House Koh Samui"
           width={1024}
           height={1069}
           className="h-20 w-auto rounded-xl shadow-md"
+          unoptimized
         />
         <div className="flex items-center gap-4">
           {socials.map(({ href, label, Icon }) => (

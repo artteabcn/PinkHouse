@@ -35,6 +35,38 @@ export const bookings = sqliteTable("bookings", {
     .default(sql`(datetime('now'))`),
 });
 
+// CMS content overrides — text snippets keyed by (locale, path).
+// `path` is a dot-separated key into the messages tree, e.g. "hero.headline"
+// or "rooms.items.0.description". A NULL/missing override falls back to the
+// shipped messages/*.json default.
+export const contentOverrides = sqliteTable("content_overrides", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  locale: text("locale").notNull(),
+  path: text("path").notNull(),
+  value: text("value").notNull(),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`(datetime('now'))`),
+  updatedBy: text("updated_by"),
+});
+
+// CMS image slots — slot is a named position on the site (e.g. "logo",
+// "hero.main", "rooms.standard.cover", "gallery.0"). r2Key points to the
+// uploaded binary in the MEDIA R2 bucket.
+export const contentImages = sqliteTable("content_images", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  slot: text("slot").notNull().unique(),
+  r2Key: text("r2_key").notNull(),
+  alt: text("alt"),
+  width: integer("width"),
+  height: integer("height"),
+  contentType: text("content_type"),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`(datetime('now'))`),
+  updatedBy: text("updated_by"),
+});
+
 export const contacts = sqliteTable("contacts", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
@@ -54,3 +86,7 @@ export type Booking = typeof bookings.$inferSelect;
 export type NewBooking = typeof bookings.$inferInsert;
 export type Contact = typeof contacts.$inferSelect;
 export type NewContact = typeof contacts.$inferInsert;
+export type ContentOverride = typeof contentOverrides.$inferSelect;
+export type NewContentOverride = typeof contentOverrides.$inferInsert;
+export type ContentImage = typeof contentImages.$inferSelect;
+export type NewContentImage = typeof contentImages.$inferInsert;

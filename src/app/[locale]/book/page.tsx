@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import BookingForm from "@/components/BookingForm";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { SITE, alternateLanguages, localePath } from "@/config/site";
+import { getImageUrl } from "@/lib/content";
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -55,10 +56,11 @@ function BookingHeader(): React.JSX.Element {
   );
 }
 
-export default function BookPage(): React.JSX.Element {
+export default async function BookPage(): Promise<React.JSX.Element> {
+  const logoUrl = await getImageUrl("logo", "/logo.png");
   return (
     <main>
-      <Nav />
+      <Nav logoUrl={logoUrl} />
       <BookingHeader />
 
       <section className="bg-white py-16">

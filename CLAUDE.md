@@ -154,6 +154,47 @@ The displayed "from" price lives in `messages/*.json` (`rooms.items[0].price`) a
 
 ---
 
+## CMS / Admin Panel
+
+A hidden content editor lives at `/content` (outside locale routing — no `/en/content`).
+Three signed-in emails can edit:
+
+- Text strings in `messages/*.json` (overrides stored per `(locale, path)` in D1 `content_overrides`)
+- Image slots (logo, hero, room, gallery) stored in R2 `pinkhouse-media` + D1 `content_images`
+
+**Read path:** `src/i18n/request.ts` merges D1 overrides on top of the shipped JSON at SSR time
+via `applyOverrides()`. Pages read images through `getImageUrl(slot, fallback)` so missing
+overrides silently fall back to `/public/images/*`.
+
+**Auth:** Cloudflare Access at the edge. Set up in the dashboard:
+
+1. Zero Trust → Access → Applications → Add → Self-hosted
+2. Application domain: `pinkhousekohsamui.com`, paths: `/content/*` and `/api/admin/*`
+3. Policy: include — emails are one of (greg@arkadya.tech, bradley@arkadya.tech, pinkhouse.lamai@gmail.com)
+4. Identity provider: One-time PIN (sends a 6-digit code by email) or Google OAuth
+5. Copy the Application AUD tag → set as `CF_ACCESS_AUD` env var in Pages
+6. Note your team domain → set as `CF_ACCESS_TEAM_DOMAIN` (just the subdomain, e.g. `pinkhouse`)
+
+**R2 bucket setup (one-time):**
+
+```
+wrangler r2 bucket create pinkhouse-media
+```
+
+Make the bucket public via dashboard → R2 → pinkhouse-media → Settings → Public access (enable r2.dev URL or attach a custom domain). Copy the public URL into `MEDIA_PUBLIC_URL` env var.
+
+**Image slots** are registered in `src/lib/content.ts` (`IMAGE_SLOTS`). Add a new slot there and
+the admin UI picks it up automatically; pages reference it via `getImageUrl(slot, fallback)`.
+
+**Adding new editable text fields:** append to the `SECTIONS` array in
+`src/app/content/text/page.tsx` (or `rooms/page.tsx` for room-specific fields). Each entry is
+just a `{ path, label, multiline? }` referencing a dot-path into the messages tree.
+
+**Local dev:** `getAdminUser()` returns `{ email: "dev@local" }` when `NODE_ENV !== "production"`,
+so /content is accessible without setting up Access locally.
+
+---
+
 ## Self-Improvement
 
 When Claude is corrected:

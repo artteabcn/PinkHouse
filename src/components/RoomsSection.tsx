@@ -1,7 +1,8 @@
 import React from "react";
-import { useTranslations, useLocale } from "next-intl";
 import Image from "next/image";
+import { getTranslations, getLocale } from "next-intl/server";
 import { BedDouble, Wind, Trees, Coffee } from "lucide-react";
+import { getImageUrl } from "@/lib/content";
 
 interface RoomItem {
   id: string;
@@ -14,11 +15,12 @@ interface RoomItem {
   view: string;
 }
 
-export default function RoomsSection(): React.JSX.Element {
-  const t = useTranslations("rooms");
-  const locale = useLocale();
+export default async function RoomsSection(): Promise<React.JSX.Element> {
+  const t = await getTranslations("rooms");
+  const locale = await getLocale();
   const rooms = t.raw("items") as RoomItem[];
   const room = rooms[0];
+  const roomSrc = await getImageUrl("rooms.standard.cover", "/images/room.jpeg");
 
   const features = [
     { icon: BedDouble, label: t("feature1") },
@@ -39,11 +41,12 @@ export default function RoomsSection(): React.JSX.Element {
         <div className="bg-brand-cream mt-20 grid items-center gap-0 overflow-hidden rounded-2xl shadow-sm ring-1 ring-black/5 lg:grid-cols-2">
           <div className="relative aspect-[4/3] lg:aspect-auto lg:h-full lg:min-h-[480px]">
             <Image
-              src="/images/room.jpeg"
+              src={roomSrc}
               alt={room.name}
               fill
               className="object-cover"
               sizes="(max-width: 1024px) 100vw, 50vw"
+              unoptimized
             />
           </div>
 

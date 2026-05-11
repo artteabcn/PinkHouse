@@ -1,20 +1,23 @@
 import React from "react";
-import { useTranslations, useLocale } from "next-intl";
 import Image from "next/image";
+import { getTranslations, getLocale } from "next-intl/server";
+import { getImageUrl } from "@/lib/content";
 
-export default function HeroSection(): React.JSX.Element {
-  const t = useTranslations("hero");
-  const locale = useLocale();
+export default async function HeroSection(): Promise<React.JSX.Element> {
+  const t = await getTranslations("hero");
+  const locale = await getLocale();
+  const heroSrc = await getImageUrl("hero.main", "/images/main.jpeg");
 
   return (
     <section className="relative flex h-screen min-h-[640px] items-center justify-center overflow-hidden">
       <Image
-        src="/images/main.jpeg"
+        src={heroSrc}
         alt="Pink House Koh Samui — pool with tropical view"
         fill
         priority
         className="object-cover"
         sizes="100vw"
+        unoptimized
       />
 
       <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/35 to-black/75" />
