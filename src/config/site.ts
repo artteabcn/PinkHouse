@@ -1,6 +1,6 @@
 import { SOCIAL_LINKS } from "@/components/SocialIcons";
 
-export const SITE_URL = "https://pinkhousesamui.com";
+export const SITE_URL = "https://pinkhousekohsamui.com";
 
 export const SITE = {
   name: "Pink House Koh Samui",
@@ -8,7 +8,7 @@ export const SITE = {
   url: SITE_URL,
   defaultLocale: "en",
   locales: ["en", "fr", "de", "th"] as const,
-  email: "hello@pinkhousesamui.com",
+  email: "hello@pinkhousekohsamui.com",
   phone: {
     e164: "+66811065304",
     display: "+66 81 106 5304",

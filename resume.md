@@ -89,7 +89,7 @@ On Smoobu failure the intent is **canceled** so the guest is never charged.
   - Confirm the Stripe account is provisioned for THB charges (Thailand
     region or multi-currency-enabled).
   - Register webhook in Stripe Dashboard pointing to
-    `https://pinkhousesamui.com/api/stripe/webhook` for events
+    `https://pinkhousekohsamui.com/api/stripe/webhook` for events
     `payment_intent.succeeded`, `payment_intent.canceled`,
     `payment_intent.payment_failed`, `charge.refunded`. Copy the signing
     secret into `STRIPE_WEBHOOK_SECRET`.
@@ -109,13 +109,13 @@ On Smoobu failure the intent is **canceled** so the guest is never charged.
 - **Custom OG image** — currently reusing `/images/main.jpeg`. A
   purpose-built 1200×630 hero with logo + tagline overlay performs
   better on social shares.
-- **Search Console** — submit sitemap at `https://pinkhousesamui.com/sitemap.xml`
+- **Search Console** — submit sitemap at `https://pinkhousekohsamui.com/sitemap.xml`
   and add the verification meta tag.
 - **Reviews** — once Booking/Google reviews exist, add `AggregateRating`
   to the `LodgingBusiness` schema.
 - **Footer keys** — `footer.*` i18n keys were removed when the footer
   was stripped down. If a richer footer ever returns, re-add them.
-- **Resend domain verification** — confirm `pinkhousesamui.com` is
+- **Resend domain verification** — confirm `pinkhousekohsamui.com` is
   verified in the Resend dashboard, otherwise owner emails will 403
   at runtime even though the build succeeds.
 
