@@ -197,5 +197,30 @@
     "successDetail": "Eine Bestätigung wurde an Ihre E-Mail gesendet. Reservierung Nr. {id}.",
     "errorTitle": "Etwas ist schiefgelaufen",
     "errorDetail": "Bitte versuchen Sie es erneut oder kontaktieren Sie uns per WhatsApp."
+  },
+  "emails": {
+    "bookingConfirmation": {
+      "subject": "Buchung bestätigt — Pink House Koh Samui",
+      "preheader": "Ihr Aufenthalt ist bestätigt. Hier sind die Details.",
+      "greeting": "Vielen Dank, {name}!",
+      "intro": "Ihr Aufenthalt im Pink House ist bestätigt. Alle Details haben wir unten zusammengefasst — bitte bewahren Sie diese E-Mail bis zu Ihrer Anreise auf.",
+      "stayTitle": "Ihr Aufenthalt",
+      "roomLabel": "Zimmer",
+      "checkInLabel": "Anreise",
+      "checkOutLabel": "Abreise",
+      "guestsLabel": "Gäste",
+      "reservationLabel": "Reservierung",
+      "paymentTitle": "Zahlung",
+      "totalLabel": "Gesamter Aufenthalt",
+      "depositLabel": "Anzahlung geleistet",
+      "balanceLabel": "Restbetrag bei Anreise",
+      "balanceNote": "Der Restbetrag ist bei Anreise bar oder mit Karte zu zahlen.",
+      "nonRefundableNote": "Die Anzahlung ist nicht erstattungsfähig. Bei Stornierung oder Nichterscheinen wird die Anzahlung nicht zurückerstattet.",
+      "contactTitle": "Fragen?",
+      "contactBody": "Antworten Sie auf diese E-Mail oder schreiben Sie uns auf WhatsApp unter {phone} — wir helfen Ihnen gerne bei Flughafentransfers, Ankunftszeiten und allem anderen vor Ihrem Aufenthalt.",
+      "signOff": "Wir freuen uns auf Sie,",
+      "houseName": "Pink House Koh Samui",
+      "houseAddress": "Lamai, Koh Samui, Surat Thani 84310, Thailand"
+    }
   }
 }

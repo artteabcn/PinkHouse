@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { BookingSchema, type BookingInput } from "@/lib/validations/booking";
 import { sendOwnerEmail, bookingOwnerEmail } from "@/lib/owner-email";
-import { sendBookingConfirmation } from "@/lib/resend";
+import { sendBookingConfirmation } from "@/lib/guest-email";
 import { createReservation, SmoobuError } from "@/lib/smoobu";
 import { ROOM_TO_APARTMENT_ID, SMOOBU_CHANNEL_ID_DIRECT_WEBSITE } from "@/config/smoobu";
 import { getDbOrNull } from "@/lib/db/get-db";
@@ -192,13 +192,15 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     sendBookingConfirmation({
       to: parsed.email,
       name: parsed.name,
-      room: roomName,
+      roomId: parsed.roomId,
       checkIn: parsed.checkIn,
       checkOut: parsed.checkOut,
       guests,
       totalPrice: totalThb,
       depositPaid: capturedThb,
       balanceDue: balanceThb,
+      reservationId: smoobuReservationId,
+      locale: parsed.locale,
     }),
   ]);
 
