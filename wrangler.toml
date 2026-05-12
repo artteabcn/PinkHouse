@@ -18,5 +18,10 @@ migrations_dir = "drizzle"
 binding = "MEDIA"
 bucket_name = "pinkhouse-media"
 
+[vars]
+# Comma-separated — owner-email.ts splits on "," to notify all recipients
+OWNER_EMAIL = "hello@arkadya.tech,greg@arkadya.tech"
+OWNER_FROM_EMAIL = "hello@pinkhousekohsamui.com"
+
 [dev]
 port = 8788

@@ -1,7 +1,7 @@
 const FROM = process.env.RESEND_FROM ?? "noreply@pinkhousekohsamui.com";
 
 export async function sendEmail(payload: {
-  to: string;
+  to: string | string[];
   subject: string;
   html: string;
   from?: string;

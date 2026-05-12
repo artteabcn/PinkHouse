@@ -11,11 +11,15 @@ interface OwnerEmailParams {
 }
 
 export async function sendOwnerEmail(params: OwnerEmailParams): Promise<void> {
-  const to = process.env.OWNER_EMAIL;
-  if (!to) throw new Error("OWNER_EMAIL not configured");
+  const raw = process.env.OWNER_EMAIL;
+  if (!raw) throw new Error("OWNER_EMAIL not configured");
+  const to = raw
+    .split(",")
+    .map((e) => e.trim())
+    .filter(Boolean);
 
   await sendEmail({
-    to,
+    to: to.length === 1 ? to[0] : to,
     subject: params.subject,
     html: params.html,
     from: process.env.OWNER_FROM_EMAIL,
