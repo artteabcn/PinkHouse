@@ -82,6 +82,32 @@ export const contacts = sqliteTable("contacts", {
     .default(sql`(datetime('now'))`),
 });
 
+export const paidServices = sqliteTable("paid_services", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  description: text("description"),
+  price: integer("price").notNull(),
+  currency: text("currency").notNull().default("THB"),
+  unit: text("unit"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  active: integer("active", { mode: "boolean" }).notNull().default(true),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`(datetime('now'))`),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`(datetime('now'))`),
+});
+
+// Single-row cache (key = "reviews") for Google Places API responses.
+// Avoids hitting Google's API on every SSR render; TTL enforced in code.
+export const googleReviewsCache = sqliteTable("google_reviews_cache", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  cacheKey: text("cache_key").notNull().unique(),
+  data: text("data").notNull(),
+  fetchedAt: text("fetched_at").notNull(),
+});
+
 export type Booking = typeof bookings.$inferSelect;
 export type NewBooking = typeof bookings.$inferInsert;
 export type Contact = typeof contacts.$inferSelect;
@@ -90,3 +116,5 @@ export type ContentOverride = typeof contentOverrides.$inferSelect;
 export type NewContentOverride = typeof contentOverrides.$inferInsert;
 export type ContentImage = typeof contentImages.$inferSelect;
 export type NewContentImage = typeof contentImages.$inferInsert;
+export type PaidService = typeof paidServices.$inferSelect;
+export type NewPaidService = typeof paidServices.$inferInsert;

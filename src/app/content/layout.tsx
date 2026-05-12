@@ -44,6 +44,9 @@ export default async function ContentLayout({
                 <Link href="/content/media" className="hover:text-brand-pink">
                   Media
                 </Link>
+                <Link href="/content/services" className="hover:text-brand-pink">
+                  Services
+                </Link>
               </nav>
             </div>
             <div className="text-brand-ink-soft text-xs">

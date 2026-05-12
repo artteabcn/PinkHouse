@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { FileText, BedDouble, ImageIcon, ExternalLink } from "lucide-react";
+import { FileText, BedDouble, ImageIcon, ExternalLink, ConciergeBell } from "lucide-react";
 
 const CARDS = [
   {
@@ -20,6 +20,12 @@ const CARDS = [
     icon: ImageIcon,
     title: "Media",
     description: "Logo, hero image, room photo, gallery. Upload, replace or remove.",
+  },
+  {
+    href: "/content/services",
+    icon: ConciergeBell,
+    title: "Services",
+    description: "Paid extras — laundry, airport transfer, etc. Add, edit or remove prices.",
   },
 ];
 
