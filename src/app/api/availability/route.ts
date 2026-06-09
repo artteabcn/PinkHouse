@@ -45,9 +45,18 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       endDate: departure,
     });
 
+    const arrivalDate = nights[0];
     const available: AvailableApartment[] = [];
+    // Smallest min-length-of-stay required to book *any* apartment on the
+    // arrival date, read live from Smoobu rather than hardcoded so seasonal
+    // changes to the rule surface automatically. Defaults to 1 night.
+    let minStayRequired = Infinity;
     for (const id of apartmentIds) {
       const daily = rates[String(id)] ?? {};
+      const arrivalMinStay = daily[arrivalDate]?.min_length_of_stay;
+      if (typeof arrivalMinStay === "number" && arrivalMinStay > 0) {
+        minStayRequired = Math.min(minStayRequired, arrivalMinStay);
+      }
       const nightlyRates: DailyRate[] = nights.map((d) => daily[d] ?? {});
       const allAvailable = nightlyRates.every((r) => r.available === 1);
       if (!allAvailable) continue;
@@ -61,7 +70,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       });
     }
 
-    return NextResponse.json({ available, nights: nights.length });
+    return NextResponse.json({
+      available,
+      nights: nights.length,
+      minStayRequired: Number.isFinite(minStayRequired) ? minStayRequired : 1,
+    });
   } catch (err) {
     if (err instanceof SmoobuError) {
       console.error("Smoobu availability error", err.status, err.body);

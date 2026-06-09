@@ -47,20 +47,40 @@
     "guests": "Gäste",
     "book": "Dieses Zimmer buchen",
     "cta": "Verfügbarkeit prüfen",
-    "feature1": "Queen-Bett mit hochwertiger Bettwäsche",
+    "feature1": "Kingsize-Bett mit hochwertiger Bettwäsche",
     "feature2": "Klimaanlage & eigenes Bad",
     "feature3": "Private Terrasse mit Gartenblick",
     "feature4": "Tägliche Reinigung & frisches Frühstück",
     "items": [
       {
-        "id": "standard",
-        "name": "Standardzimmer",
-        "description": "Gemütlich und hell mit Queen-Bett, eigenem Bad, Klimaanlage und einem privaten Balkon mit Blick auf den tropischen Garten.",
-        "price": 1800,
+        "id": "cosy",
+        "name": "Cosy-Zimmer",
+        "description": "Unser intimster Rückzugsort — ein helles, klimatisiertes Zimmer mit Kingsize-Bett, eigenem Bad und privater Terrasse. Die perfekte ruhige Inselbasis für zwei, nur wenige Schritte vom Pool.",
+        "price": 1300,
         "currency": "THB",
         "maxGuests": 2,
-        "beds": "1 Queen-Bett",
-        "view": "Gartenblick"
+        "beds": "1 Kingsize-Bett",
+        "view": "Garten- & Poolblick"
+      },
+      {
+        "id": "deluxe",
+        "name": "Deluxe-Zimmer",
+        "description": "Ein großzügigerer Aufenthalt mit gehobenem Komfort — Kingsize-Bett, eigenes Bad, Klimaanlage und private Terrasse mit Blick auf Garten und Pool. Ein stilvoller, entspannter Rückzugsort für zwei.",
+        "price": 1600,
+        "currency": "THB",
+        "maxGuests": 2,
+        "beds": "1 Kingsize-Bett",
+        "view": "Garten- & Poolblick"
+      },
+      {
+        "id": "family",
+        "name": "Familienzimmer",
+        "description": "Platz für die ganze Familie — ein Kingsize-Bett plus ein Einzelbett, eigenes Bad und eine private Terrasse. Bequem für drei Personen, mit Pool, Frühstück und Garten direkt vor der Tür.",
+        "price": 1400,
+        "currency": "THB",
+        "maxGuests": 3,
+        "beds": "1 Kingsize-Bett + 1 Einzelbett",
+        "view": "Garten- & Poolblick"
       }
     ]
   },
@@ -170,6 +190,7 @@
     "findRooms": "Verfügbare Zimmer anzeigen",
     "searching": "Verfügbarkeit wird geprüft...",
     "noRooms": "Keine Zimmer für diese Daten verfügbar. Bitte andere Daten wählen.",
+    "minStayNotice": "Für diese Daten gilt ein Mindestaufenthalt von {nights} Nächten. Bitte wählen Sie einen längeren Zeitraum.",
     "select": "Auswählen",
     "totalFor": "Gesamtpreis für {nights} Nächte",
     "perNight": "/ Nacht",

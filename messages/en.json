@@ -47,20 +47,40 @@
     "guests": "guests",
     "book": "Book This Room",
     "cta": "Check availability",
-    "feature1": "Queen bed with premium linens",
+    "feature1": "King bed with premium linens",
     "feature2": "Air-conditioning & en-suite bathroom",
     "feature3": "Private terrace overlooking the garden",
     "feature4": "Daily housekeeping & fresh breakfast",
     "items": [
       {
-        "id": "standard",
-        "name": "Standard Room",
-        "description": "Cosy and bright, our standard room features a queen bed, en-suite bathroom, air conditioning, and a private balcony overlooking the tropical garden.",
-        "price": 1800,
+        "id": "cosy",
+        "name": "Cosy Room",
+        "description": "Our most intimate retreat — a bright, air-conditioned room with a king bed, en-suite bathroom and a private terrace. The perfect calm island base for two, steps from the pool.",
+        "price": 1300,
         "currency": "THB",
         "maxGuests": 2,
-        "beds": "1 Queen Bed",
-        "view": "Garden View"
+        "beds": "1 King Bed",
+        "view": "Garden & Pool View"
+      },
+      {
+        "id": "deluxe",
+        "name": "Deluxe Room",
+        "description": "A more spacious stay with elevated comfort — king bed, en-suite bathroom, air-conditioning and a private terrace overlooking the garden and pool. A refined, relaxed escape for two.",
+        "price": 1600,
+        "currency": "THB",
+        "maxGuests": 2,
+        "beds": "1 King Bed",
+        "view": "Garden & Pool View"
+      },
+      {
+        "id": "family",
+        "name": "Family Room",
+        "description": "Room for the whole family — a king bed plus a single bed, en-suite bathroom and a private terrace. Comfortably sleeps three, with the pool, breakfast and garden just outside your door.",
+        "price": 1400,
+        "currency": "THB",
+        "maxGuests": 3,
+        "beds": "1 King + 1 Single Bed",
+        "view": "Garden & Pool View"
       }
     ]
   },
@@ -100,7 +120,11 @@
         "title": "Airport Transfer",
         "desc": "Convenient pick-up and drop-off on request"
       },
-      { "icon": "cleaning", "title": "Daily Housekeeping", "desc": "Rooms serviced every morning" },
+      {
+        "icon": "cleaning",
+        "title": "Daily Housekeeping",
+        "desc": "Rooms serviced every morning"
+      },
       {
         "icon": "languages",
         "title": "Multilingual Staff",
@@ -166,6 +190,7 @@
     "findRooms": "Find available rooms",
     "searching": "Checking availability...",
     "noRooms": "No rooms available for these dates. Please try different dates.",
+    "minStayNotice": "These dates require a minimum stay of {nights} nights. Please choose a longer date range.",
     "select": "Select",
     "totalFor": "Total for {nights} nights",
     "perNight": "/ night",

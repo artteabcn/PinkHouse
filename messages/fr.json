@@ -47,20 +47,40 @@
     "guests": "personnes",
     "book": "Réserver cette chambre",
     "cta": "Vérifier les disponibilités",
-    "feature1": "Lit queen size avec linge de qualité",
+    "feature1": "Lit king size avec linge de qualité",
     "feature2": "Climatisation & salle de bain privative",
     "feature3": "Terrasse privée donnant sur le jardin",
     "feature4": "Ménage quotidien & petit-déjeuner frais",
     "items": [
       {
-        "id": "standard",
-        "name": "Chambre Standard",
-        "description": "Cosy et lumineuse, notre chambre standard dispose d'un lit queen size, d'une salle de bain privative, de la climatisation et d'un balcon privé avec vue sur le jardin tropical.",
-        "price": 1800,
+        "id": "cosy",
+        "name": "Chambre Cosy",
+        "description": "Notre refuge le plus intime — une chambre lumineuse et climatisée avec un lit king, une salle de bain privative et une terrasse privée. La base insulaire idéale et paisible pour deux, à quelques pas de la piscine.",
+        "price": 1300,
         "currency": "THB",
         "maxGuests": 2,
-        "beds": "1 lit Queen",
-        "view": "Vue jardin"
+        "beds": "1 lit king",
+        "view": "Vue jardin & piscine"
+      },
+      {
+        "id": "deluxe",
+        "name": "Chambre Deluxe",
+        "description": "Un séjour plus spacieux au confort raffiné — lit king, salle de bain privative, climatisation et terrasse privée donnant sur le jardin et la piscine. Une escapade élégante et détendue pour deux.",
+        "price": 1600,
+        "currency": "THB",
+        "maxGuests": 2,
+        "beds": "1 lit king",
+        "view": "Vue jardin & piscine"
+      },
+      {
+        "id": "family",
+        "name": "Chambre Familiale",
+        "description": "De la place pour toute la famille — un lit king et un lit simple, une salle de bain privative et une terrasse privée. Couchage confortable pour trois, avec la piscine, le petit-déjeuner et le jardin juste devant votre porte.",
+        "price": 1400,
+        "currency": "THB",
+        "maxGuests": 3,
+        "beds": "1 lit king + 1 lit simple",
+        "view": "Vue jardin & piscine"
       }
     ]
   },
@@ -95,7 +115,11 @@
         "title": "Support WhatsApp",
         "desc": "Contactez-nous à tout moment via WhatsApp"
       },
-      { "icon": "transfer", "title": "Transfert aéroport", "desc": "Navette pratique sur demande" },
+      {
+        "icon": "transfer",
+        "title": "Transfert aéroport",
+        "desc": "Navette pratique sur demande"
+      },
       {
         "icon": "cleaning",
         "title": "Ménage quotidien",
@@ -166,6 +190,7 @@
     "findRooms": "Voir les chambres disponibles",
     "searching": "Vérification des disponibilités...",
     "noRooms": "Aucune chambre disponible pour ces dates. Essayez d'autres dates.",
+    "minStayNotice": "Ces dates exigent un séjour minimum de {nights} nuits. Veuillez choisir une période plus longue.",
     "select": "Sélectionner",
     "totalFor": "Total pour {nights} nuits",
     "perNight": "/ nuit",

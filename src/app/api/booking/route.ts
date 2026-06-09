@@ -169,7 +169,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     });
   }
 
-  const roomName = parsed.roomId === "standard" ? "Standard Room" : parsed.roomId;
+  const ROOM_LABELS: Record<string, string> = {
+    cosy: "Cosy Room",
+    deluxe: "Deluxe Room",
+    family: "Family Room",
+  };
+  const roomName = ROOM_LABELS[parsed.roomId] ?? parsed.roomId;
   const guests = parsed.adults + parsed.children;
 
   const [ownerResult, guestResult] = await Promise.allSettled([

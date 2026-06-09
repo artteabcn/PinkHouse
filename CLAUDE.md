@@ -84,7 +84,7 @@ Native booking flow on `/book` (no iframe widget — uses Smoobu's REST API dire
 - API client: `src/lib/smoobu.ts`
 - Config: `src/config/smoobu.ts` — channel IDs and apartment mapping
 - Channel ID for direct-website reservations: **5722806**
-- Apartment IDs: `3040751, 3040756, 3040766, 3040771, 3040776, 3040781` — all six are the same room type (`standard`). `APARTMENT_TO_ROOM_ID` in `src/config/smoobu.ts` maps every apartment to `"standard"`; if a new room type is ever added, update that map first and the booking pipeline picks it up automatically (Zod uses `z.string()`, the API resolves apartment ↔ roomId via the config).
+- Apartment IDs: `3040751, 3040756, 3040766, 3040771, 3040776, 3040781`, grouped into 3 categories (`cosy` / `deluxe` / `family`) via `APARTMENT_TO_ROOM_ID` in `src/config/smoobu.ts` (see the Rooms section below). The booking pipeline resolves apartment ↔ roomId via that config (Zod uses `z.string()`); update the map when categories change. Note: the Smoobu account also lists `3040741` (whole-property "PINK HOUSE KOH SAMUI", maxOcc 14) and two unrelated properties (QUESADA, RESIDENCE BISCHHEIM) — these are intentionally **excluded** from `SMOOBU_APARTMENT_IDS`.
 
 **Charge model:** 50% **non-refundable deposit** collected at booking time (in THB) via Stripe. Balance is paid on arrival in cash or by card. The percentage lives in `src/config/payments.ts` (`DEPOSIT_PERCENT`) — flip that constant to change the split. The non-refundability is enforced by a required acknowledgement checkbox at the payment step + matching copy in all four locales; Stripe itself can still issue refunds from the dashboard at the owner's discretion.
 
@@ -109,11 +109,15 @@ Note: the `amountPaid` column in `bookings` always stores the deposit captured, 
 
 ## Rooms
 
-One room type today, replicated across 6 physical units in Smoobu:
+Three room categories spanning 6 physical units in Smoobu (`roomId` = the `id` of each `rooms.items` entry):
 
-- `standard` — 1 Queen, garden view, max 2 guests, from 1800 THB/night
+- `cosy` — 1 King, max 2 guests, from 1300 THB/night — Smoobu apartments 3040751, 3040766, 3040781
+- `deluxe` — 1 King, max 2 guests, from 1600 THB/night — Smoobu apartment 3040756
+- `family` — 1 King + 1 Single, max 3 guests, from 1400 THB/night — Smoobu apartments 3040771, 3040776
 
-The displayed "from" price lives in `messages/*.json` (`rooms.items[0].price`) as a marketing teaser — actual nightly rates come from Smoobu's `/rates` endpoint at booking time. If a new room type is introduced later, add it to `APARTMENT_TO_ROOM_ID` in `src/config/smoobu.ts` _and_ append a matching item to `rooms.items` in all four locale files.
+The displayed "from" price lives in `messages/*.json` (`rooms.items[n].price`) as a marketing teaser — actual nightly rates come from Smoobu's `/rates` endpoint at booking time. The availability results dedupe by category (one card per Cosy/Deluxe/Family, cheapest available unit represents it). Smoobu's REST API exposes only structured facts (occupancy, beds, price) per apartment — the room descriptions are website copy, not pulled from Smoobu. To add/change a room type: update `APARTMENT_TO_ROOM_ID` + `ROOM_TO_APARTMENT_ID` in `src/config/smoobu.ts`, append a matching item to `rooms.items` in all four locale files, add a `rooms.<id>.cover` slot in `IMAGE_SLOTS` (`src/lib/content.ts`), a section in the CMS `src/app/content/rooms/page.tsx`, and a label in `ROOM_LABELS` (`src/app/api/booking/route.ts`).
+
+**Min-stay:** Smoobu enforces a `min_length_of_stay` (currently 2 nights). `/api/availability` reads it live from the `/rates` arrival-date data and returns `minStayRequired`; `BookingForm` shows `booking.minStayNotice` when a search is shorter than the required minimum — nothing is hardcoded.
 
 ---
 

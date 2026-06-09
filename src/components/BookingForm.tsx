@@ -113,6 +113,9 @@ export default function BookingForm(): React.JSX.Element {
   const [payment, setPayment] = useState<PaymentSession | null>(null);
   const [reservationId, setReservationId] = useState<number | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
+  // Minimum nights Smoobu requires for the searched arrival date — returned by
+  // /api/availability, used to explain an empty result set ("minimum N nights").
+  const [minStay, setMinStay] = useState(1);
 
   // Render an inert placeholder during SSR + first client paint, then swap to
   // the real form after mount. Eliminates any hydration mismatch source within
@@ -133,6 +136,35 @@ export default function BookingForm(): React.JSX.Element {
     resolver: zodResolver(GuestSchema),
   });
 
+  // Nights in the current search, used to tell an empty result set caused by
+  // Smoobu's minimum-stay rule apart from genuine no-availability.
+  const searchedNights = useMemo(() => {
+    if (!criteria) return 0;
+    const ms =
+      new Date(`${criteria.checkOut}T00:00:00Z`).getTime() -
+      new Date(`${criteria.checkIn}T00:00:00Z`).getTime();
+    return Math.round(ms / 86_400_000);
+  }, [criteria]);
+
+  // Several physical apartments share a room category (e.g. 3× Cosy). Show one
+  // card per category — the cheapest available unit represents it — so the
+  // guest picks a room type, not a near-identical duplicate. A concrete
+  // apartmentId is still carried through for the reservation.
+  const displayRooms = useMemo(() => {
+    const order = roomItems.map((r) => r.id);
+    const byCategory = new Map<string, AvailableRoom>();
+    for (const room of available) {
+      const key = room.roomId ?? String(room.apartmentId);
+      const current = byCategory.get(key);
+      if (!current || (room.totalPrice ?? Infinity) < (current.totalPrice ?? Infinity)) {
+        byCategory.set(key, room);
+      }
+    }
+    return Array.from(byCategory.values()).sort(
+      (a, b) => order.indexOf(a.roomId ?? "") - order.indexOf(b.roomId ?? "")
+    );
+  }, [available, roomItems]);
+
   async function onSearch(data: SearchInput): Promise<void> {
     try {
       const res = await fetch("/api/availability", {
@@ -146,9 +178,14 @@ export default function BookingForm(): React.JSX.Element {
         }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = (await res.json()) as { available: AvailableRoom[]; nights: number };
+      const json = (await res.json()) as {
+        available: AvailableRoom[];
+        nights: number;
+        minStayRequired?: number;
+      };
       setCriteria(data);
       setAvailable(json.available);
+      setMinStay(json.minStayRequired ?? 1);
       setStep("results");
     } catch (err) {
       setErrorDetail(err instanceof Error ? err.message : "unknown");
@@ -159,7 +196,7 @@ export default function BookingForm(): React.JSX.Element {
   async function onGuestSubmit(data: GuestInput): Promise<void> {
     if (!criteria || !selected) return;
     try {
-      const roomId = selected.roomId ?? APARTMENT_TO_ROOM_ID[selected.apartmentId] ?? "standard";
+      const roomId = selected.roomId ?? APARTMENT_TO_ROOM_ID[selected.apartmentId] ?? "cosy";
       const res = await fetch("/api/payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -188,7 +225,7 @@ export default function BookingForm(): React.JSX.Element {
   async function onPaymentAuthorized(): Promise<void> {
     if (!criteria || !selected || !guestData || !payment) return;
     try {
-      const roomId = selected.roomId ?? APARTMENT_TO_ROOM_ID[selected.apartmentId] ?? "standard";
+      const roomId = selected.roomId ?? APARTMENT_TO_ROOM_ID[selected.apartmentId] ?? "cosy";
       const res = await fetch("/api/booking", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -351,12 +388,12 @@ export default function BookingForm(): React.JSX.Element {
           </p>
           {available.length === 0 ? (
             <p className="text-brand-ink bg-brand-blush mt-8 rounded-xl p-6 text-center text-sm">
-              {t("noRooms")}
+              {searchedNights < minStay ? t("minStayNotice", { nights: minStay }) : t("noRooms")}
             </p>
           ) : (
             <div className="mt-6 grid gap-6">
-              {available.map((room, idx) => {
-                const copy = (room.roomId && roomCopyById[room.roomId]) || roomCopyById.standard;
+              {displayRooms.map((room, idx) => {
+                const copy = room.roomId ? roomCopyById[room.roomId] : undefined;
                 const label = copy?.name ?? `Apartment ${room.apartmentId}`;
                 return (
                   <div

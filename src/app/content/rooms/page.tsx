@@ -18,14 +18,40 @@ const SECTIONS: ReadonlyArray<{ title: string; fields: ReadonlyArray<EditableFie
     ],
   },
   {
-    title: "Standard Room",
+    title: "Cosy Room",
     fields: [
       { path: "rooms.items.0.name", label: "Room name" },
       { path: "rooms.items.0.description", label: "Description", multiline: true },
-      { path: "rooms.items.0.beds", label: "Beds (e.g. 1 Queen Bed)" },
-      { path: "rooms.items.0.view", label: "View (e.g. Garden View)" },
+      { path: "rooms.items.0.beds", label: "Beds (e.g. 1 King Bed)" },
+      { path: "rooms.items.0.view", label: "View (e.g. Garden & Pool View)" },
       {
         path: "rooms.items.0.price",
+        label: "Starting price (marketing teaser — real rates come from Smoobu)",
+      },
+    ],
+  },
+  {
+    title: "Deluxe Room",
+    fields: [
+      { path: "rooms.items.1.name", label: "Room name" },
+      { path: "rooms.items.1.description", label: "Description", multiline: true },
+      { path: "rooms.items.1.beds", label: "Beds (e.g. 1 King Bed)" },
+      { path: "rooms.items.1.view", label: "View (e.g. Garden & Pool View)" },
+      {
+        path: "rooms.items.1.price",
+        label: "Starting price (marketing teaser — real rates come from Smoobu)",
+      },
+    ],
+  },
+  {
+    title: "Family Room",
+    fields: [
+      { path: "rooms.items.2.name", label: "Room name" },
+      { path: "rooms.items.2.description", label: "Description", multiline: true },
+      { path: "rooms.items.2.beds", label: "Beds (e.g. 1 King + 1 Single Bed)" },
+      { path: "rooms.items.2.view", label: "View (e.g. Garden & Pool View)" },
+      {
+        path: "rooms.items.2.price",
         label: "Starting price (marketing teaser — real rates come from Smoobu)",
       },
     ],
