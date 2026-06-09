@@ -1,5 +1,5 @@
 import React from "react";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, getLocale } from "next-intl/server";
 import { getGoogleReviews } from "@/lib/google-reviews";
 import type { GoogleReview } from "@/lib/google-reviews";
 import ReviewsCarousel from "./ReviewsCarousel";
@@ -54,8 +54,9 @@ function GoogleG(): React.JSX.Element {
 
 export default async function TestimonialsSection(): Promise<React.JSX.Element> {
   const t = await getTranslations("testimonials");
+  const locale = await getLocale();
   const staticItems = t.raw("items") as TestimonialItem[];
-  const googleData = await getGoogleReviews();
+  const googleData = await getGoogleReviews(locale);
 
   const showGoogle = googleData.reviews.length > 0;
 

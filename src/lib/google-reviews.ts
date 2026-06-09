@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { googleReviewsCache } from "@/db/schema";
 import { getDbOrNull } from "@/lib/db/get-db";
+import { routing } from "@/i18n/routing";
 
 export interface GoogleReview {
   displayName: string;
@@ -15,8 +16,13 @@ export interface GoogleReviewsData {
   totalRatings?: number;
 }
 
-const CACHE_KEY = "reviews";
 const CACHE_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
+
+// Restrict the requested translation language to the site's locales; anything
+// else falls back to the default locale.
+function normalizeLanguage(locale: string): string {
+  return (routing.locales as readonly string[]).includes(locale) ? locale : routing.defaultLocale;
+}
 
 interface PlacesApiResponse {
   reviews?: Array<{
@@ -29,13 +35,16 @@ interface PlacesApiResponse {
   userRatingCount?: number;
 }
 
-async function fetchFromGoogle(): Promise<GoogleReviewsData> {
+async function fetchFromGoogle(language: string): Promise<GoogleReviewsData> {
   const apiKey = process.env.GOOGLE_PLACES_API_KEY;
   const placeId = process.env.GOOGLE_PLACE_ID;
   if (!apiKey || !placeId) return { reviews: [] };
 
   try {
-    const res = await fetch(`https://places.googleapis.com/v1/places/${placeId}`, {
+    // `languageCode` makes Google return the review text machine-translated
+    // into that language (and localizes the relative-time string too).
+    const url = `https://places.googleapis.com/v1/places/${placeId}?languageCode=${encodeURIComponent(language)}`;
+    const res = await fetch(url, {
       headers: {
         "X-Goog-Api-Key": apiKey,
         "X-Goog-FieldMask": "reviews,rating,userRatingCount",
@@ -60,14 +69,20 @@ async function fetchFromGoogle(): Promise<GoogleReviewsData> {
   }
 }
 
-export async function getGoogleReviews(): Promise<GoogleReviewsData> {
+export async function getGoogleReviews(
+  locale: string = routing.defaultLocale
+): Promise<GoogleReviewsData> {
+  const language = normalizeLanguage(locale);
+  // Cache each language separately so a French visitor never gets the German
+  // translation just because it was fetched first.
+  const cacheKey = `reviews:${language}`;
   const db = await getDbOrNull();
 
   if (db) {
     const rows = await db
       .select()
       .from(googleReviewsCache)
-      .where(eq(googleReviewsCache.cacheKey, CACHE_KEY))
+      .where(eq(googleReviewsCache.cacheKey, cacheKey))
       .limit(1);
 
     const cached = rows[0];
@@ -78,12 +93,12 @@ export async function getGoogleReviews(): Promise<GoogleReviewsData> {
       }
     }
 
-    const data = await fetchFromGoogle();
+    const data = await fetchFromGoogle(language);
     if (data.reviews.length > 0 || data.placeRating) {
       await db
         .insert(googleReviewsCache)
         .values({
-          cacheKey: CACHE_KEY,
+          cacheKey,
           data: JSON.stringify(data),
           fetchedAt: new Date().toISOString(),
         })
@@ -95,5 +110,5 @@ export async function getGoogleReviews(): Promise<GoogleReviewsData> {
     return data;
   }
 
-  return fetchFromGoogle();
+  return fetchFromGoogle(language);
 }
