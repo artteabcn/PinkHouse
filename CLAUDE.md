@@ -145,6 +145,7 @@ The displayed "from" price lives in `messages/*.json` (`rooms.items[n].price`) a
 | `src/app/api/payment-intent/route.ts`   | Re-prices via Smoobu, inserts pending D1 row, creates manual-capture intent for the deposit          |
 | `src/app/api/stripe/webhook/route.ts`   | Defensive D1 sync on succeeded/canceled/refunded                                                     |
 | `src/config/payments.ts`                | `DEPOSIT_PERCENT` + `depositAmount()` / `balanceDue()` helpers (charge-split single source of truth) |
+| `src/components/RoomImageCarousel.tsx`  | Client carousel (arrows, dots, lightbox, keyboard nav) — rendered inside each room card              |
 
 ---
 
@@ -190,6 +191,21 @@ Make the bucket public via dashboard → R2 → pinkhouse-media → Settings →
 **Image slots** are registered in `src/lib/content.ts` (`IMAGE_SLOTS`). Add a new slot there and
 the admin UI picks it up automatically; pages reference it via `getImageUrl(slot, fallback)`.
 
+**Room image slots** follow a 3-slot pattern per category:
+
+- `rooms.{id}.cover` — primary cover (required; has `/images/room.jpeg` fallback)
+- `rooms.{id}.1` — second photo (optional; no fallback — slot is absent until uploaded)
+- `rooms.{id}.2` — third photo (optional; same)
+
+The `RoomsSection.tsx` server component reads all three and passes them as an array to
+`RoomImageCarousel.tsx` (client island). The carousel shows arrows, dot indicators, and a
+click-to-open lightbox only when more than one image is present.
+
+**`MEDIA_PUBLIC_URL`** must be set in Cloudflare Pages env vars to the public URL of the
+`pinkhouse-media` R2 bucket. Without it, uploads store in R2/D1 but the constructed URLs are
+broken relative paths and images won't display. The `/content/media` page shows an amber
+warning banner when this var is absent.
+
 **Adding new editable text fields:** append to the `SECTIONS` array in
 `src/app/content/text/page.tsx` (or `rooms/page.tsx` for room-specific fields). Each entry is
 just a `{ path, label, multiline? }` referencing a dot-path into the messages tree.
@@ -216,3 +232,5 @@ When Claude is corrected:
 # Added: 2026-05-06 — `lucide-react` is pinned at v1.9.0 in this repo, which predates brand icons. Do NOT import `Facebook`, `Instagram`, or any brand glyph from `lucide-react` — TS will fail Cloudflare's build. Use the inline SVGs in `src/components/SocialIcons.tsx` instead.
 
 # Added: 2026-05-06 — When adding/changing routes, keep `src/app/sitemap.ts` and `seo.*` i18n keys in sync; missing entries silently degrade SEO without failing the build.
+
+# Added: 2026-06-12 — `MEDIA_PUBLIC_URL` must be set in Cloudflare Pages env vars (public URL of the `pinkhouse-media` R2 bucket). Without it, `mediaPublicUrl()` in `src/lib/content.ts` returns `""` and all stored image URLs become broken relative paths. The `/content/media` admin page renders an amber warning banner when the var is absent.
