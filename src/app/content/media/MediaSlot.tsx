@@ -49,7 +49,13 @@ export default function MediaSlot({
       const res = await fetch("/api/admin/media", { method: "POST", body: form });
       const json = (await res.json()) as UploadResult;
       if (!res.ok || !json.ok) throw new Error(json.error ?? `HTTP ${res.status}`);
-      setDisplayUrl(json.url ?? URL.createObjectURL(file));
+      // Use blob URL for the in-page preview when the server URL is a relative path
+      // (happens when MEDIA_PUBLIC_URL is not yet configured in Cloudflare Pages).
+      const previewUrl =
+        json.url && (json.url.startsWith("http://") || json.url.startsWith("https://"))
+          ? json.url
+          : URL.createObjectURL(file);
+      setDisplayUrl(previewUrl);
       setHasOverride(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
