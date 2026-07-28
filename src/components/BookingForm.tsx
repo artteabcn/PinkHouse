@@ -26,6 +26,9 @@ interface AvailableRoom {
   apartmentId: number;
   roomId: string | null;
   totalPrice: number | null;
+  undiscountedPrice: number | null;
+  discountPercent: number;
+  discountAmount: number | null;
   currency: string;
   nights: number;
 }
@@ -77,6 +80,9 @@ interface PaymentSession {
   depositAmount: number;
   balanceDue: number;
   totalAmount: number;
+  undiscountedAmount?: number;
+  discountPercent: number;
+  discountAmount?: number;
   depositPercent: number;
 }
 
@@ -459,12 +465,23 @@ export default function BookingForm(): React.JSX.Element {
                             <p className="text-brand-ink-soft text-[11px] tracking-wider uppercase">
                               {t("totalFor", { nights: room.nights })}
                             </p>
+                            {room.discountAmount && room.discountAmount > 0 && (
+                              <p className="text-brand-ink-soft mt-0.5 text-sm font-normal line-through">
+                                {(room.undiscountedPrice ?? 0).toLocaleString()}{" "}
+                                <span className="text-xs">{room.currency}</span>
+                              </p>
+                            )}
                             <p className="text-brand-ink mt-0.5 font-serif text-2xl font-semibold">
                               {room.totalPrice.toLocaleString()}{" "}
                               <span className="text-brand-ink-soft text-sm font-normal">
                                 {room.currency}
                               </span>
                             </p>
+                            {room.discountAmount && room.discountAmount > 0 && (
+                              <span className="bg-brand-pink-light text-brand-pink-dark mt-2 inline-block rounded-full px-3 py-1 text-[11px] font-semibold tracking-wider uppercase">
+                                {t("directDiscountBadge", { percent: room.discountPercent })}
+                              </span>
+                            )}
                           </div>
                         )}
                         <button
@@ -510,12 +527,23 @@ export default function BookingForm(): React.JSX.Element {
               {selected.totalPrice !== null && (
                 <>
                   {" · "}
+                  {selected.discountAmount && selected.discountAmount > 0 && (
+                    <span className="text-brand-ink-soft mr-1 line-through">
+                      {(selected.undiscountedPrice ?? 0).toLocaleString()} {selected.currency}
+                    </span>
+                  )}
                   <span className="text-brand-teal font-semibold">
                     {selected.totalPrice.toLocaleString()} {selected.currency}
                   </span>
                 </>
               )}
             </p>
+            {selected.discountAmount && selected.discountAmount > 0 && (
+              <p className="text-brand-pink-dark mt-1.5 text-xs font-semibold tracking-wider uppercase">
+                {t("directDiscountBadge", { percent: selected.discountPercent })} · −
+                {selected.discountAmount.toLocaleString()} {selected.currency}
+              </p>
+            )}
           </div>
 
           <h3 className="text-brand-ink mt-8 font-serif text-2xl font-semibold">
@@ -641,6 +669,18 @@ function PaymentStep({
           {summary.checkIn} → {summary.checkOut} · {summary.guests} {t("adults")}
         </p>
         <div className="mt-4 grid gap-1.5 border-t border-black/5 pt-4 text-sm">
+          {payment.discountAmount && payment.discountAmount > 0 && (
+            <>
+              <div className="text-brand-ink-soft flex justify-between line-through">
+                <span>{t("undiscountedStayLabel")}</span>
+                <span>{(payment.undiscountedAmount ?? 0).toLocaleString()} THB</span>
+              </div>
+              <div className="text-brand-pink-dark flex justify-between font-semibold">
+                <span>{t("directDiscountLabel", { percent: payment.discountPercent })}</span>
+                <span>−{payment.discountAmount.toLocaleString()} THB</span>
+              </div>
+            </>
+          )}
           <div className="text-brand-ink-soft flex justify-between">
             <span>{t("totalStayLabel")}</span>
             <span>{payment.totalAmount.toLocaleString()} THB</span>

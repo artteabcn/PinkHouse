@@ -88,6 +88,15 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     parsed.totalPrice ?? Number(intent.metadata?.fullPriceThb ?? Math.round(intent.amount / 100));
   const depositThb = Math.round(intent.amount / 100);
   const balanceThb = Math.max(0, totalThb - depositThb);
+  // Discount context (optional — present only for direct-website bookings made
+  // after the discount shipped; older intents fall back to no discount row).
+  const discountPercent = intent.metadata?.discountPercent
+    ? Number(intent.metadata.discountPercent)
+    : 0;
+  const undiscountedThb = intent.metadata?.undiscountedPriceThb
+    ? Number(intent.metadata.undiscountedPriceThb)
+    : totalThb;
+  const discountThb = Math.max(0, undiscountedThb - totalThb);
   const localId = parsed.bookingId ?? null;
 
   let smoobuReservationId: number | undefined;
@@ -189,6 +198,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         guests,
         notes: parsed.notes,
         totalPrice: totalThb,
+        undiscountedPrice: discountThb > 0 ? undiscountedThb : undefined,
+        discountPercent: discountThb > 0 ? discountPercent : undefined,
+        discountAmount: discountThb > 0 ? discountThb : undefined,
         depositPaid: capturedThb,
         balanceDue: balanceThb,
         reservationId: smoobuReservationId,
@@ -204,6 +216,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       totalPrice: totalThb,
       depositPaid: capturedThb,
       balanceDue: balanceThb,
+      discountPercent: discountThb > 0 ? discountPercent : undefined,
+      discountAmount: discountThb > 0 ? discountThb : undefined,
       reservationId: smoobuReservationId,
       locale: parsed.locale,
     }),

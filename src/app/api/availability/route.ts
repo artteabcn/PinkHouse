@@ -3,11 +3,15 @@ import { AvailabilitySchema } from "@/lib/validations/availability";
 import { getRates, SmoobuError } from "@/lib/smoobu";
 import type { DailyRate } from "@/lib/smoobu";
 import { SMOOBU_APARTMENT_IDS, APARTMENT_TO_ROOM_ID } from "@/config/smoobu";
+import { applyDiscount, DISCOUNT_PERCENT } from "@/config/payments";
 
 interface AvailableApartment {
   apartmentId: number;
   roomId: string | null;
   totalPrice: number | null;
+  undiscountedPrice: number | null;
+  discountPercent: number;
+  discountAmount: number | null;
   currency: string;
   nights: number;
 }
@@ -60,11 +64,15 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       const nightlyRates: DailyRate[] = nights.map((d) => daily[d] ?? {});
       const allAvailable = nightlyRates.every((r) => r.available === 1);
       if (!allAvailable) continue;
-      const total = nightlyRates.reduce((sum, r) => sum + (r.price ?? 0), 0);
+      const undiscounted = nightlyRates.reduce((sum, r) => sum + (r.price ?? 0), 0);
+      const discounted = applyDiscount(undiscounted);
       available.push({
         apartmentId: id,
         roomId: APARTMENT_TO_ROOM_ID[id] ?? null,
-        totalPrice: total > 0 ? total : null,
+        totalPrice: discounted > 0 ? discounted : null,
+        undiscountedPrice: undiscounted > 0 ? undiscounted : null,
+        discountPercent: DISCOUNT_PERCENT,
+        discountAmount: undiscounted > 0 && discounted > 0 ? undiscounted - discounted : null,
         currency: "THB",
         nights: nights.length,
       });

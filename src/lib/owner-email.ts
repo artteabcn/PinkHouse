@@ -46,13 +46,22 @@ export function bookingOwnerEmail(data: {
   guests: number;
   notes?: string;
   totalPrice?: number;
+  undiscountedPrice?: number;
+  discountPercent?: number;
+  discountAmount?: number;
   depositPaid?: number;
   balanceDue?: number;
   reservationId?: number;
 }): { subject: string; html: string; replyTo: string } {
   const hasDeposit = data.depositPaid !== undefined && data.depositPaid > 0;
+  const hasDiscount =
+    data.undiscountedPrice !== undefined &&
+    data.discountAmount !== undefined &&
+    data.discountAmount > 0;
   const prefix = hasDeposit ? "New booking (deposit paid)" : "New booking";
-  const subject = `${prefix} — ${data.name} — ${data.checkIn} → ${data.checkOut}`;
+  const discountTag =
+    hasDiscount && data.discountPercent ? ` −${data.discountPercent}% direct` : "";
+  const subject = `${prefix} — ${data.name} — ${data.checkIn} → ${data.checkOut}${discountTag}`;
   const rows: [string, string][] = [
     ["Guest", data.name],
     ["Email", data.email],
@@ -62,6 +71,15 @@ export function bookingOwnerEmail(data: {
     ["Check-out", data.checkOut],
     ["Guests", String(data.guests)],
   ];
+  if (hasDiscount && data.undiscountedPrice !== undefined) {
+    rows.push(["Stay before discount", `${data.undiscountedPrice.toLocaleString()} THB`]);
+    if (data.discountPercent !== undefined) {
+      rows.push([
+        `Direct-website discount (−${data.discountPercent}%)`,
+        `−${data.discountAmount!.toLocaleString()} THB`,
+      ]);
+    }
+  }
   if (data.totalPrice !== undefined) {
     rows.push(["Total stay", `${data.totalPrice.toLocaleString()} THB`]);
   }

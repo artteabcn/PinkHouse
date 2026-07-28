@@ -70,6 +70,9 @@ export interface BookingConfirmationInput {
   checkOut: string;
   guests: number;
   totalPrice: number;
+  undiscountedPrice?: number;
+  discountPercent?: number;
+  discountAmount?: number;
   depositPaid: number;
   balanceDue: number;
   reservationId?: number;
@@ -89,6 +92,8 @@ interface Copy {
   reservationLabel: string;
   paymentTitle: string;
   totalLabel: string;
+  undiscountedLabel: string;
+  discountLabel: string;
   depositLabel: string;
   balanceLabel: string;
   balanceNote: string;
@@ -156,7 +161,20 @@ export function renderBookingConfirmation(input: BookingConfirmationInput): {
       <tr><td style="padding:24px 36px 0;">
         ${sectionLabel(copy.paymentTitle)}
         <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background:#fdf3f7;border-radius:12px;border-collapse:separate;">
-          ${row(copy.totalLabel, `${fmt(input.totalPrice)} THB`)}
+          ${
+            input.discountAmount && input.discountAmount > 0
+              ? row(
+                  copy.undiscountedLabel,
+                  `${fmt(input.undiscountedPrice ?? input.totalPrice + input.discountAmount)} THB`,
+                  false
+                ) +
+                rowDiscount(
+                  interpolate(copy.discountLabel, { percent: input.discountPercent ?? 0 }),
+                  `−${fmt(input.discountAmount)} THB`
+                )
+              : ""
+          }
+          ${row(copy.totalLabel, `${fmt(input.totalPrice)} THB`, !input.depositPaid)}
           ${rowHighlight(copy.depositLabel, `${fmt(input.depositPaid)} THB`)}
           ${rowTotal(copy.balanceLabel, `${fmt(input.balanceDue)} THB`)}
         </table>
@@ -192,6 +210,10 @@ function row(label: string, value: string, isLast: boolean = false): string {
 
 function rowHighlight(label: string, value: string): string {
   return `<tr><td style="padding:14px 18px;border-bottom:1px solid #fce0eb;font-size:13px;color:#0f7b6e;font-weight:600;">${escapeHtml(label)}</td><td style="padding:14px 18px;border-bottom:1px solid #fce0eb;font-size:14px;color:#0f7b6e;text-align:right;font-weight:700;">${value}</td></tr>`;
+}
+
+function rowDiscount(label: string, value: string): string {
+  return `<tr><td style="padding:14px 18px;border-bottom:1px solid #fdf3f7;font-size:13px;color:#a8285c;font-weight:600;">${escapeHtml(label)}</td><td style="padding:14px 18px;border-bottom:1px solid #fdf3f7;font-size:14px;color:#a8285c;text-align:right;font-weight:700;">${escapeHtml(value)}</td></tr>`;
 }
 
 function rowTotal(label: string, value: string): string {

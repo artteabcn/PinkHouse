@@ -6,7 +6,13 @@ import { SMOOBU_APARTMENT_IDS, SMOOBU_CHANNEL_ID_DIRECT_WEBSITE } from "@/config
 import { createPaymentIntent } from "@/lib/stripe";
 import { getDbOrNull } from "@/lib/db/get-db";
 import { bookings } from "@/db/schema";
-import { DEPOSIT_PERCENT, depositAmount, balanceDue } from "@/config/payments";
+import {
+  DEPOSIT_PERCENT,
+  DISCOUNT_PERCENT,
+  applyDiscount,
+  depositAmount,
+  balanceDue,
+} from "@/config/payments";
 
 function nightDates(arrival: string, departure: string): string[] {
   const dates: string[] = [];
@@ -23,7 +29,7 @@ async function priceQuote(
   apartmentId: number,
   checkIn: string,
   checkOut: string
-): Promise<{ totalThb: number } | { error: string }> {
+): Promise<{ undiscountedThb: number; totalThb: number } | { error: string }> {
   if (!SMOOBU_APARTMENT_IDS.includes(apartmentId as (typeof SMOOBU_APARTMENT_IDS)[number])) {
     return { error: "Unknown apartment" };
   }
@@ -36,9 +42,13 @@ async function priceQuote(
   const nightly: DailyRate[] = nightDates(checkIn, checkOut).map((d) => daily[d] ?? {});
   if (nightly.length === 0) return { error: "Empty stay" };
   if (!nightly.every((r) => r.available === 1)) return { error: "Apartment unavailable" };
-  const total = nightly.reduce((sum, r) => sum + (r.price ?? 0), 0);
-  if (total <= 0) return { error: "Could not price stay" };
-  return { totalThb: Math.round(total) };
+  const undiscounted = nightly.reduce((sum, r) => sum + (r.price ?? 0), 0);
+  if (undiscounted <= 0) return { error: "Could not price stay" };
+  // totalThb already includes the direct-website discount; this is the figure
+  // used for Stripe deposit math and stored as totalPrice in D1/Smoobu.
+  const totalThb = applyDiscount(undiscounted);
+  if (totalThb <= 0) return { error: "Could not price stay" };
+  return { undiscountedThb: Math.round(undiscounted), totalThb };
 }
 
 async function insertPending(
@@ -91,12 +101,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   let totalThb: number;
+  let undiscountedThb: number;
   try {
     const quote = await priceQuote(parsed.apartmentId, parsed.checkIn, parsed.checkOut);
     if ("error" in quote) {
       return NextResponse.json({ error: quote.error }, { status: 409 });
     }
     totalThb = quote.totalThb;
+    undiscountedThb = quote.undiscountedThb;
   } catch (err) {
     if (err instanceof SmoobuError) {
       return NextResponse.json(
@@ -109,6 +121,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   const depositThb = depositAmount(totalThb);
   const balanceThb = balanceDue(totalThb);
+  const discountThb = Math.max(0, undiscountedThb - totalThb);
   // THB has 2 decimal places in Stripe (smallest unit = satang).
   const amountSatang = depositThb * 100;
 
@@ -118,7 +131,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       amount: amountSatang,
       currency: "thb",
       receiptEmail: parsed.email,
-      description: `${DEPOSIT_PERCENT}% non-refundable deposit — Pink House Koh Samui`,
+      description: `${DEPOSIT_PERCENT}% non-refundable deposit — Pink House Koh Samui (includes ${DISCOUNT_PERCENT}% direct-booking discount)`,
       metadata: {
         apartmentId: String(parsed.apartmentId),
         roomId: parsed.roomId,
@@ -129,6 +142,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         locale: parsed.locale,
         chargeModel: `deposit_${DEPOSIT_PERCENT}`,
         fullPriceThb: String(totalThb),
+        undiscountedPriceThb: String(undiscountedThb),
+        discountPercent: String(DISCOUNT_PERCENT),
+        discountThb: String(discountThb),
         depositThb: String(depositThb),
         balanceDueThb: String(balanceThb),
       },
@@ -152,6 +168,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     depositAmount: depositThb,
     balanceDue: balanceThb,
     totalAmount: totalThb,
+    undiscountedAmount: undiscountedThb,
+    discountPercent: DISCOUNT_PERCENT,
+    discountAmount: discountThb,
     depositPercent: DEPOSIT_PERCENT,
     currency: "THB",
   });
