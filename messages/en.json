@@ -179,7 +179,14 @@
   "bookPage": {
     "label": "Reservations",
     "title": "Book Your Stay",
-    "subtitle": "Check availability and reserve your room directly. Best rates guaranteed — no booking fees."
+    "subtitle": "Check availability and reserve your room directly. Best rates guaranteed — no booking fees.",
+    "perksTitle": "Best rate guaranteed",
+    "perksBody": "And not only that: plenty of little touches to help you make the most of your stay — early check-in whenever possible, a welcome drink, local tips and insider addresses...",
+    "perksItems": [
+      "Early check-in whenever possible",
+      "Welcome drink on arrival",
+      "Local tips and insider addresses around the island"
+    ]
   },
   "booking": {
     "title": "Book Your Stay",

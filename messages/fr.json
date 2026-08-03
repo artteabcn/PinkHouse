@@ -179,7 +179,14 @@
   "bookPage": {
     "label": "Réservations",
     "title": "Réserver votre séjour",
-    "subtitle": "Vérifiez les disponibilités et réservez directement. Meilleurs tarifs garantis — sans frais de réservation."
+    "subtitle": "Vérifiez les disponibilités et réservez directement. Meilleurs tarifs garantis — sans frais de réservation.",
+    "perksTitle": "Meilleur tarif garanti",
+    "perksBody": "Mais pas que : plein de petites attentions pour vous faire profiter au maximum de votre séjour — check-in early dans la mesure du possible, boisson de bienvenue, adresses et bons plans...",
+    "perksItems": [
+      "Check-in anticipé dans la mesure du possible",
+      "Boisson de bienvenue à l'arrivée",
+      "Adresses locales et bons plans de l'île"
+    ]
   },
   "booking": {
     "title": "Réserver votre séjour",

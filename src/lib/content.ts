@@ -253,4 +253,7 @@ export const IMAGE_SLOTS: ReadonlyArray<{
   { slot: "gallery.2", label: "Gallery 3", fallback: "/images/main3.jpeg" },
   { slot: "gallery.3", label: "Gallery 4", fallback: "/images/main4.jpeg" },
   { slot: "gallery.4", label: "Gallery 5", fallback: "/images/room.jpeg" },
+  { slot: "gallery.5", label: "Gallery 6", fallback: "/images/main2.jpeg" },
+  { slot: "gallery.6", label: "Gallery 7", fallback: "/images/main3.jpeg" },
+  { slot: "gallery.7", label: "Gallery 8", fallback: "/images/main4.jpeg" },
 ];

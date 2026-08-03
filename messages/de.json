@@ -179,7 +179,14 @@
   "bookPage": {
     "label": "Reservierungen",
     "title": "Ihren Aufenthalt buchen",
-    "subtitle": "Verfügbarkeit prüfen und direkt reservieren. Beste Preise garantiert — keine Buchungsgebühren."
+    "subtitle": "Verfügbarkeit prüfen und direkt reservieren. Beste Preise garantiert — keine Buchungsgebühren.",
+    "perksTitle": "Bestpreis garantiert",
+    "perksBody": "Und nicht nur das: viele kleine Aufmerksamkeiten, damit Sie Ihren Aufenthalt in vollen Zügen genießen können — frühes Einchecken, wenn möglich, ein Begrüßungsgetränk, Adressen und Geheimtipps...",
+    "perksItems": [
+      "Frühes Einchecken, wenn möglich",
+      "Begrüßungsgetränk bei Ankunft",
+      "Adressen und Geheimtipps auf der Insel"
+    ]
   },
   "booking": {
     "title": "Ihren Aufenthalt buchen",
