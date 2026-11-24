@@ -38,7 +38,10 @@
       "esbuild",
       "sharp",
       "workerd"
-    ]
+    ],
+    "patchedDependencies": {
+      "next@16.4.6": "patches/next@16.4.6.patch"
+    }
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

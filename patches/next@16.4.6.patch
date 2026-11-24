@@ -1,0 +1,39 @@
+diff --git a/dist/server/require-hook.js b/dist/server/require-hook.js
+index 5e0fee25a3deffd0f1ad8e2e4c0fb547f55bfd67..362e6bd0a9e59de4d523f5fc8681ceed62f05b48 100644
+--- a/dist/server/require-hook.js
++++ b/dist/server/require-hook.js
+@@ -30,7 +30,7 @@ _export(exports, {
+ });
+ const path = require('path');
+ const mod = require('module');
+-const originalRequire = mod.prototype.require;
++const originalRequire = mod.prototype ? mod.prototype.require : undefined; // patched: Workers `module` shim has no prototype
+ const resolveFilename = // @ts-expect-error
+ mod._resolveFilename;
+ let resolve = process.env.NEXT_MINIMAL ? __non_webpack_require__.resolve : require.resolve;
+@@ -62,21 +62,25 @@ function addHookAliases(aliases = []) {
+ }
+ addHookAliases(toResolveMap(defaultOverrides));
+ // @ts-expect-error
++try {
+ mod._resolveFilename = (function(originalResolveFilename, requestMap, request, parent, isMain, options) {
+     const hookResolved = requestMap.get(request);
+     if (hookResolved) request = hookResolved;
+     return originalResolveFilename.call(mod, request, parent, isMain, options);
+ // We use `bind` here to avoid referencing outside variables to create potential memory leaks.
+ }).bind(null, resolveFilename, hookPropertyMap);
++} catch (_) {} // patched: read-only `module` shim on Workers
+ // @ts-expect-error
+ // This is a hack to make sure that if a user requires a Next.js module that wasn't bundled
+ // that needs to point to the rendering runtime version, it will point to the correct one.
+ // This can happen on `pages` when a user requires a dependency that uses next/image for example.
++if (mod.prototype && originalRequire) {
+ mod.prototype.require = function(request) {
+     if (request.endsWith('.shared-runtime')) {
+         return originalRequire.call(this, `next/dist/server/route-modules/pages/vendored/contexts/${path.basename(request, '.shared-runtime')}`);
+     }
+     return originalRequire.call(this, request);
+ };
++} // patched: Workers `module` shim has no prototype
+ 
+ //# sourceMappingURL=require-hook.js.map
