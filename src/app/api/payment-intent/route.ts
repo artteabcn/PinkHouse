@@ -159,7 +159,18 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "Missing client_secret" }, { status: 502 });
   }
 
-  const bookingId = await insertPending(parsed, totalThb, depositThb, intent.id);
+  // A D1 failure must not strand a live Stripe intent behind an unhandled 500.
+  // /api/booking already treats a null bookingId as "no local row", so log
+  // loudly and let the guest continue — Smoobu stays the source of truth.
+  let bookingId: number | null = null;
+  try {
+    bookingId = await insertPending(parsed, totalThb, depositThb, intent.id);
+  } catch (err) {
+    console.error(
+      `D1 insert failed for payment intent ${intent.id}:`,
+      err instanceof Error ? err.message : err
+    );
+  }
 
   return NextResponse.json({
     clientSecret: intent.client_secret,

@@ -16,7 +16,9 @@ class SmoobuError extends Error {
 function getApiKey(): string {
   const key = process.env.SMOOBU_API_KEY;
   if (!key) throw new Error("SMOOBU_API_KEY is not configured");
-  return key;
+  // A key pasted into a dashboard field often carries stray whitespace or
+  // wrapping quotes, which Smoobu answers with 401.
+  return key.trim().replace(/^["']|["']$/g, "");
 }
 
 async function smoobuFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -33,6 +35,13 @@ async function smoobuFetch<T>(path: string, init: RequestInit = {}): Promise<T> 
 
   if (!res.ok) {
     const text = await res.text();
+    if (res.status === 401 || res.status === 403) {
+      // The single most common production failure: say it plainly in the log.
+      console.error(
+        `SMOOBU_API_KEY was rejected (${res.status}) on ${path}. ` +
+          "Re-issue the key in Smoobu (Settings > API) and update the Cloudflare Pages secret."
+      );
+    }
     throw new SmoobuError(res.status, text);
   }
 

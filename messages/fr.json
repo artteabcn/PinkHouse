@@ -230,6 +230,8 @@
     "paidLabel": "Acompte versé",
     "successTitle": "Réservation confirmée",
     "successDetail": "Une confirmation a été envoyée par e-mail. Réservation n°{id}.",
+    "successDetailNoEmail": "Votre réservation est confirmée, mais nous n'avons pas pu envoyer l'e-mail de confirmation. Conservez votre numéro de réservation n°{id} et contactez-nous si vous souhaitez une copie.",
+    "successDetailFollowUp": "Votre réservation n°{id} est enregistrée. Nous n'avons pas pu finaliser l'acompte automatiquement ; notre équipe vous contactera très bientôt pour le régler.",
     "errorTitle": "Une erreur s'est produite",
     "errorDetail": "Veuillez réessayer ou nous contacter via WhatsApp."
   },

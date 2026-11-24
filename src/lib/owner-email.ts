@@ -36,6 +36,47 @@ function escapeHtml(value: string): string {
     .replace(/'/g, "&#39;");
 }
 
+// Sent when Smoobu accepted a reservation but Stripe could not capture the
+// deposit: the guest sees a success screen, so the owner must follow up.
+export function captureFailureOwnerEmail(data: {
+  name: string;
+  email: string;
+  phone: string;
+  checkIn: string;
+  checkOut: string;
+  reservationId?: number;
+  paymentIntentId: string;
+  reason: string;
+}): { subject: string; html: string; replyTo: string } {
+  const rows: [string, string][] = [
+    ["Guest", data.name],
+    ["Email", data.email],
+    ["Phone", data.phone],
+    ["Check-in", data.checkIn],
+    ["Check-out", data.checkOut],
+    ["Smoobu reservation", data.reservationId ? `#${data.reservationId}` : "—"],
+    ["Stripe payment intent", data.paymentIntentId],
+    ["Error", data.reason],
+  ];
+  const tableRows = rows
+    .map(
+      ([k, v]) =>
+        `<tr><td style="padding:6px 12px 6px 0;color:#4a8a82;font-size:13px;">${escapeHtml(k)}</td><td style="padding:6px 0;color:#0f7b6e;font-size:14px;">${escapeHtml(v)}</td></tr>`
+    )
+    .join("");
+  return {
+    subject: `ACTION NEEDED — deposit not captured — ${data.name} — ${data.checkIn} → ${data.checkOut}`,
+    html: `
+      <div style="font-family:system-ui,sans-serif;max-width:560px;">
+        <h2 style="color:#a8285c;margin:0 0 8px;">Deposit not captured — Pink House</h2>
+        <p style="color:#0f7b6e;font-size:14px;margin:0 0 16px;">The reservation exists in Smoobu, but the Stripe deposit hold could not be captured. The guest was told the booking is saved. Capture the payment in the Stripe dashboard or contact the guest.</p>
+        <table style="border-collapse:collapse;">${tableRows}</table>
+      </div>
+    `,
+    replyTo: data.email,
+  };
+}
+
 export function bookingOwnerEmail(data: {
   name: string;
   email: string;

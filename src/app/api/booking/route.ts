@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { BookingSchema, type BookingInput } from "@/lib/validations/booking";
-import { sendOwnerEmail, bookingOwnerEmail } from "@/lib/owner-email";
+import { sendOwnerEmail, bookingOwnerEmail, captureFailureOwnerEmail } from "@/lib/owner-email";
 import { sendBookingConfirmation } from "@/lib/guest-email";
 import { createReservation, SmoobuError } from "@/lib/smoobu";
 import { ROOM_TO_APARTMENT_ID, SMOOBU_CHANNEL_ID_DIRECT_WEBSITE } from "@/config/smoobu";
@@ -156,6 +156,26 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         smoobuReservationId,
       });
     }
+    // The guest sees "booking saved", so make sure a human is told to act.
+    try {
+      await sendOwnerEmail(
+        captureFailureOwnerEmail({
+          name: parsed.name,
+          email: parsed.email,
+          phone: parsed.phone,
+          checkIn: parsed.checkIn,
+          checkOut: parsed.checkOut,
+          reservationId: smoobuReservationId,
+          paymentIntentId: parsed.paymentIntentId,
+          reason: detail,
+        })
+      );
+    } catch (mailErr) {
+      console.error(
+        "Owner alert for failed capture also failed:",
+        mailErr instanceof Error ? mailErr.message : mailErr
+      );
+    }
     return NextResponse.json(
       {
         error: "Payment hold could not be captured — booking saved, our team will follow up",
@@ -223,18 +243,18 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }),
   ]);
 
-  const warnings: { ownerEmail?: string; guestEmail?: string } = {};
+  // Failure reasons go to the server log only (they can name sender domains and
+  // API details); the browser just gets a per-recipient sent/not-sent flag so
+  // the success screen never claims an email went out when it did not.
   if (ownerResult.status === "rejected") {
     const reason =
       ownerResult.reason instanceof Error ? ownerResult.reason.message : String(ownerResult.reason);
     console.error("Owner notification email failed:", reason);
-    warnings.ownerEmail = reason;
   }
   if (guestResult.status === "rejected") {
     const reason =
       guestResult.reason instanceof Error ? guestResult.reason.message : String(guestResult.reason);
     console.error("Guest confirmation email failed:", reason);
-    warnings.guestEmail = reason;
   }
 
   return NextResponse.json({
@@ -244,6 +264,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     paymentStatus: "paid",
     depositPaid: capturedThb,
     balanceDue: balanceThb,
-    ...(Object.keys(warnings).length > 0 ? { warnings } : {}),
+    emailSent: {
+      owner: ownerResult.status === "fulfilled",
+      guest: guestResult.status === "fulfilled",
+    },
   });
 }
