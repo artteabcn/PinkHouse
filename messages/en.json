@@ -230,6 +230,8 @@
     "paidLabel": "Deposit paid",
     "successTitle": "Booking confirmed",
     "successDetail": "We've sent a confirmation to your email. Reservation #{id}.",
+    "successDetailNoEmail": "Your booking is confirmed, but we couldn't send the confirmation email. Please keep your reservation number #{id} and contact us if you need a copy.",
+    "successDetailFollowUp": "Your reservation #{id} is saved. We couldn't finalize the deposit automatically, so our team will contact you shortly to complete it.",
     "errorTitle": "Something went wrong",
     "errorDetail": "Please try again or contact us via WhatsApp."
   },

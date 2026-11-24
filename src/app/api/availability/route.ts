@@ -86,8 +86,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   } catch (err) {
     if (err instanceof SmoobuError) {
       console.error("Smoobu availability error", err.status, err.body);
+      // Upstream body stays in the server log only — never echo it to browsers.
       return NextResponse.json(
-        { error: "Smoobu API error", smoobuStatus: err.status, smoobuBody: err.body },
+        { error: "Smoobu API error", smoobuStatus: err.status },
         { status: 502 }
       );
     }

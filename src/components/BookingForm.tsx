@@ -118,6 +118,7 @@ export default function BookingForm(): React.JSX.Element {
   const [guestData, setGuestData] = useState<GuestInput | null>(null);
   const [payment, setPayment] = useState<PaymentSession | null>(null);
   const [reservationId, setReservationId] = useState<number | null>(null);
+  const [successNote, setSuccessNote] = useState<"emailFailed" | "followUp" | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
   // Minimum nights Smoobu requires for the searched arrival date — returned by
   // /api/availability, used to explain an empty result set ("minimum N nights").
@@ -250,8 +251,16 @@ export default function BookingForm(): React.JSX.Element {
         }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = (await res.json()) as { reservationId?: number };
+      const json = (await res.json()) as {
+        reservationId?: number;
+        emailSent?: { owner: boolean; guest: boolean };
+      };
       setReservationId(json.reservationId ?? null);
+      // 202 = reservation saved but the deposit capture needs a human follow-up.
+      // Otherwise never promise a confirmation email the server could not send.
+      if (res.status === 202) setSuccessNote("followUp");
+      else if (json.emailSent && !json.emailSent.guest) setSuccessNote("emailFailed");
+      else setSuccessNote(null);
       setStep("success");
     } catch (err) {
       setErrorDetail(err instanceof Error ? err.message : "unknown");
@@ -278,7 +287,14 @@ export default function BookingForm(): React.JSX.Element {
           {t("successTitle")}
         </h3>
         <p className="text-brand-ink-soft mx-auto mt-3 max-w-md text-sm">
-          {t("successDetail", { id: reservationId ?? "—" })}
+          {t(
+            successNote === "emailFailed"
+              ? "successDetailNoEmail"
+              : successNote === "followUp"
+                ? "successDetailFollowUp"
+                : "successDetail",
+            { id: reservationId ?? "—" }
+          )}
         </p>
       </div>
     );
