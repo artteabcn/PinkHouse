@@ -67,7 +67,8 @@ Set in Cloudflare Pages dashboard for production. Copy `.env.example` → `.env.
 | `RESEND_FROM`                        | Default from-address for guest mail; must be on a verified Resend domain                                |
 | `OWNER_EMAIL`                        | Destination address for booking + contact form notifications                                            |
 | `OWNER_FROM_EMAIL`                   | From-address for owner alerts (also a verified Resend domain); falls back to `RESEND_FROM`              |
-| `SMOOBU_API_KEY`                     | Smoobu REST API key — server-side only (Settings → API in Smoobu)                                       |
+| `SMOOBU_API_KEY`                     | Smoobu API key (HMAC) — server-side only (Settings → Advanced → API Keys in Smoobu)                     |
+| `SMOOBU_API_SECRET`                  | Smoobu API secret shown once when generated next to the key; required — every request is HMAC-signed    |
 | `CLOUDFLARE_ACCOUNT_ID`              | For drizzle-kit remote migrations                                                                       |
 | `CLOUDFLARE_D1_DATABASE_ID`          | D1 database ID                                                                                          |
 | `CLOUDFLARE_API_TOKEN`               | For drizzle-kit remote migrations                                                                       |
@@ -240,3 +241,12 @@ When Claude is corrected:
 # Added: 2026-11-24 — A changed Pages secret/variable only takes effect on a NEW deployment, and a failed build leaves the old deployment live with the old secrets. After editing env vars, confirm a new deployment shows "Success" before assuming the change is live. When bookings fail with a Cloudflare plain-text `error code: 502`, tail the deployment (`wrangler pages deployment tail <id> --project-name pinkhouse`); the real cause is in the log (e.g. Smoobu 401 = SMOOBU_API_KEY rejected).
 
 # Added: 2026-11-24 — Next 16 on Cloudflare Pages: every request 500'd with `TypeError: Cannot read properties of undefined (reading 'require')` from `next/dist/server/require-hook.js`. Pages' bundler gives `require('module')` no `.prototype`, and OpenNext's require-hook shim only matches `./require-hook` while Next 16.4 loads it as `next/dist/server/require-hook`. Fixed with a pnpm patch (`patches/next@16.4.6.patch`, guards the three `Module` monkey-patches). When bumping `next`, re-create the patch (`pnpm patch next@<ver>`) or confirm OpenNext fixed it upstream. Also keep `build` = `next build --webpack` (Turbopack output fails to load on Workers). Test a branch preview (`https://<id>.pinkhouse.pages.dev`, reachable via `curl --doh-url https://cloudflare-dns.com/dns-query` on Thai ISPs) before merging a framework upgrade; local `wrangler pages dev` does NOT reproduce this.
+
+# Added: 2026-11-24 — Smoobu sunset the legacy `Api-Key` header on 2026-10-31 (docs.smoobu.com → Authentication). Every request must be HMAC-signed with an API key AND secret (Settings → Advanced → API Keys): headers X-API-Key / X-Timestamp / X-Nonce / X-Signature, signature = base64(HMAC-SHA256(secret, METHOD
+
+path
+sorted-RFC3986-query
+timestamp
+nonce
+sha256hex(body)
+apiKey)). Implemented in `src/lib/smoobu-hmac.ts` (tests compare against Smoobu's openssl recipe); `smoobuFetch` signs when `SMOOBU_API_SECRET` is set. A 401 from a brand-new key means the wrong auth scheme, not a bad key.
