@@ -1,3 +1,5 @@
+import { signSmoobuRequest, smoobuTimestamp } from "@/lib/smoobu-hmac";
+
 const SMOOBU_HOST = "https://login.smoobu.com";
 const BASE_URL = `${SMOOBU_HOST}/api`;
 
@@ -13,20 +15,53 @@ class SmoobuError extends Error {
   }
 }
 
+// A value pasted into a dashboard field often carries stray whitespace or
+// wrapping quotes, which Smoobu answers with 401.
+function cleanSecret(value: string): string {
+  return value.trim().replace(/^["']|["']$/g, "");
+}
+
 function getApiKey(): string {
   const key = process.env.SMOOBU_API_KEY;
   if (!key) throw new Error("SMOOBU_API_KEY is not configured");
-  // A key pasted into a dashboard field often carries stray whitespace or
-  // wrapping quotes, which Smoobu answers with 401.
-  return key.trim().replace(/^["']|["']$/g, "");
+  return cleanSecret(key);
+}
+
+// The API secret from Settings > Advanced > API Keys. When present every
+// request is HMAC-signed (the only method Smoobu accepts since 2026-10-31).
+// Without it we fall back to the legacy `Api-Key` header, which Smoobu has
+// sunset, so a missing secret ends in the 401 logged below.
+function getApiSecret(): string | null {
+  const secret = process.env.SMOOBU_API_SECRET;
+  return secret ? cleanSecret(secret) : null;
 }
 
 async function smoobuFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const url = path.startsWith("http") ? path : `${BASE_URL}${path}`;
+  let url = path.startsWith("http") ? path : `${BASE_URL}${path}`;
+  const apiKey = getApiKey();
+  const apiSecret = getApiSecret();
+
+  let authHeaders: Record<string, string>;
+  if (apiSecret) {
+    const signed = await signSmoobuRequest({
+      method: init.method ?? "GET",
+      url,
+      body: typeof init.body === "string" ? init.body : "",
+      apiKey,
+      apiSecret,
+      timestamp: smoobuTimestamp(),
+      nonce: crypto.randomUUID(),
+    });
+    url = signed.url;
+    authHeaders = signed.headers;
+  } else {
+    authHeaders = { "Api-Key": apiKey };
+  }
+
   const res = await fetch(url, {
     ...init,
     headers: {
-      "Api-Key": getApiKey(),
+      ...authHeaders,
       "Content-Type": "application/json",
       Accept: "application/json",
       ...init.headers,
@@ -38,8 +73,11 @@ async function smoobuFetch<T>(path: string, init: RequestInit = {}): Promise<T> 
     if (res.status === 401 || res.status === 403) {
       // The single most common production failure: say it plainly in the log.
       console.error(
-        `SMOOBU_API_KEY was rejected (${res.status}) on ${path}. ` +
-          "Re-issue the key in Smoobu (Settings > API) and update the Cloudflare Pages secret."
+        `Smoobu rejected our credentials (${res.status}) on ${path} ` +
+          `[auth=${apiSecret ? "hmac" : "legacy Api-Key, sunset 2026-10-31"}]. ` +
+          (apiSecret
+            ? "Check SMOOBU_API_KEY + SMOOBU_API_SECRET (Settings > Advanced > API Keys) and that the server clock is correct."
+            : "Create an API key + secret in Smoobu (Settings > Advanced > API Keys) and set SMOOBU_API_SECRET in Cloudflare Pages.")
       );
     }
     throw new SmoobuError(res.status, text);
