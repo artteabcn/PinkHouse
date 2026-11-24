@@ -234,3 +234,7 @@ When Claude is corrected:
 # Added: 2026-05-06 — When adding/changing routes, keep `src/app/sitemap.ts` and `seo.*` i18n keys in sync; missing entries silently degrade SEO without failing the build.
 
 # Added: 2026-06-12 — `MEDIA_PUBLIC_URL` must be set in Cloudflare Pages env vars (public URL of the `pinkhouse-media` R2 bucket). Without it, `mediaPublicUrl()` in `src/lib/content.ts` returns `""` and all stored image URLs become broken relative paths. The `/content/media` admin page renders an amber warning banner when the var is absent.
+
+# Added: 2026-11-24 — Production redeploys started failing with "Next.js version 15.5.15 is not supported by the Next.js team": OpenNext refuses any Next major that is past its 2-year support window (Next 15 expired Oct 2026). The project is now on Next 16 (`next@^16.4.6`); `@opennextjs/cloudflare@^1.20` requires `next >=16.4.5` and `wrangler ^4.148`. Never ship `--dangerouslyUseUnsupportedNextVersion`; upgrade the major instead, and plan the next upgrade before Oct 2027.
+
+# Added: 2026-11-24 — A changed Pages secret/variable only takes effect on a NEW deployment, and a failed build leaves the old deployment live with the old secrets. After editing env vars, confirm a new deployment shows "Success" before assuming the change is live. When bookings fail with a Cloudflare plain-text `error code: 502`, tail the deployment (`wrangler pages deployment tail <id> --project-name pinkhouse`); the real cause is in the log (e.g. Smoobu 401 = SMOOBU_API_KEY rejected).
