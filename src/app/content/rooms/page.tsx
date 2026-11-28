@@ -57,6 +57,20 @@ const SECTIONS: ReadonlyArray<{ title: string; fields: ReadonlyArray<EditableFie
     ],
   },
   {
+    title: "Entire Villa",
+    fields: [
+      { path: "rooms.items.3.name", label: "Name" },
+      { path: "rooms.items.3.description", label: "Description", multiline: true },
+      { path: "rooms.items.3.beds", label: "Beds (e.g. 6 King + 2 Single Beds)" },
+      { path: "rooms.items.3.view", label: "View (e.g. Garden & Pool View)" },
+      {
+        path: "rooms.items.3.price",
+        label: "Starting price (0 = show the 'price depends on your dates' text)",
+      },
+      { path: "rooms.priceOnDates", label: "Text shown when the starting price is 0" },
+    ],
+  },
+  {
     title: "Room features (shown next to the room card)",
     fields: [
       { path: "rooms.feature1", label: "Feature 1" },

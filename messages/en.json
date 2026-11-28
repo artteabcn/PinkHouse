@@ -44,6 +44,7 @@
     "subtitle": "Our intimate guesthouse features only six carefully designed rooms, creating a warm, tranquil setting where every guest receives personal attention. Each room is thoughtfully furnished to balance comfort, style, and the relaxed spirit of island life.",
     "perNight": "/ night",
     "from": "From",
+    "priceOnDates": "Price depends on your dates",
     "guests": "guests",
     "book": "Book This Room",
     "cta": "Check availability",
@@ -80,6 +81,16 @@
         "currency": "THB",
         "maxGuests": 3,
         "beds": "1 King + 1 Single Bed",
+        "view": "Garden & Pool View"
+      },
+      {
+        "id": "villa",
+        "name": "Entire Villa",
+        "description": "The whole Pink House, just for your group: six bedrooms and six bathrooms for up to 14 guests, with the pool and garden. Made for families and friends travelling together.",
+        "price": 0,
+        "currency": "THB",
+        "maxGuests": 14,
+        "beds": "6 King + 2 Single Beds",
         "view": "Garden & Pool View"
       }
     ]

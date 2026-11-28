@@ -44,6 +44,7 @@
     "subtitle": "Unsere kleine Pension umfasst nur sechs durchdacht gestaltete Zimmer und schafft so ein warmes, ruhiges Ambiente, in dem jeder Gast persönliche Aufmerksamkeit erhält. Jedes Zimmer ist durchdacht eingerichtet – Komfort, Stil und Inselgefühl inklusive.",
     "perNight": "/ Nacht",
     "from": "Ab",
+    "priceOnDates": "Preis je nach Reisedatum",
     "guests": "Gäste",
     "book": "Dieses Zimmer buchen",
     "cta": "Verfügbarkeit prüfen",
@@ -80,6 +81,16 @@
         "currency": "THB",
         "maxGuests": 3,
         "beds": "1 Kingsize-Bett + 1 Einzelbett",
+        "view": "Garten- & Poolblick"
+      },
+      {
+        "id": "villa",
+        "name": "Ganze Villa",
+        "description": "Das gesamte Pink House nur für Ihre Gruppe: sechs Schlafzimmer und sechs Badezimmer für bis zu 14 Gäste, mit Pool und Garten. Ideal für Familien und Freunde, die gemeinsam reisen.",
+        "price": 0,
+        "currency": "THB",
+        "maxGuests": 14,
+        "beds": "6 Kingsize-Betten + 2 Einzelbetten",
         "view": "Garten- & Poolblick"
       }
     ]

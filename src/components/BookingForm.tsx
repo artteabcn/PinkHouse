@@ -20,7 +20,7 @@ import {
   useStripe,
 } from "@stripe/react-stripe-js";
 import { cn } from "@/lib/utils";
-import { APARTMENT_TO_ROOM_ID } from "@/config/smoobu";
+import { APARTMENT_TO_ROOM_ID, MAX_PARTY_SIZE, roomFallbackImage } from "@/config/smoobu";
 
 interface AvailableRoom {
   apartmentId: number;
@@ -37,8 +37,8 @@ const SearchSchema = z
   .object({
     checkIn: z.string().min(1),
     checkOut: z.string().min(1),
-    adults: z.coerce.number().int().min(1).max(10),
-    children: z.coerce.number().int().min(0).max(10),
+    adults: z.coerce.number().int().min(1).max(MAX_PARTY_SIZE),
+    children: z.coerce.number().int().min(0).max(MAX_PARTY_SIZE),
   })
   .refine((d) => d.checkOut > d.checkIn, {
     message: "Check-out must be after check-in",
@@ -357,7 +357,7 @@ export default function BookingForm(): React.JSX.Element {
               id="adults"
               type="number"
               min={1}
-              max={10}
+              max={MAX_PARTY_SIZE}
               {...search.register("adults")}
               className={inputClass}
             />
@@ -370,7 +370,7 @@ export default function BookingForm(): React.JSX.Element {
               id="children"
               type="number"
               min={0}
-              max={10}
+              max={MAX_PARTY_SIZE}
               {...search.register("children")}
               className={inputClass}
             />
@@ -424,7 +424,7 @@ export default function BookingForm(): React.JSX.Element {
                   >
                     <div className="relative aspect-[4/3] md:aspect-auto md:h-full">
                       <Image
-                        src="/images/room.jpeg"
+                        src={roomFallbackImage(room.roomId)}
                         alt={label}
                         fill
                         className="object-cover"
@@ -463,7 +463,13 @@ export default function BookingForm(): React.JSX.Element {
                         <p className="text-brand-ink-soft text-sm leading-6">{copy.description}</p>
                       )}
 
-                      <ul className="grid gap-2 sm:grid-cols-2">
+                      {/* The shared amenity list describes a single room, not the villa. */}
+                      <ul
+                        className={cn(
+                          "grid gap-2 sm:grid-cols-2",
+                          room.roomId === "villa" && "hidden"
+                        )}
+                      >
                         {amenities.map(({ icon: Icon, label: amen }) => (
                           <li
                             key={amen}

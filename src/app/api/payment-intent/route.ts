@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PaymentIntentSchema, type PaymentIntentInput } from "@/lib/validations/payment-intent";
 import { getRates, SmoobuError } from "@/lib/smoobu";
-import type { DailyRate } from "@/lib/smoobu";
+import { checkStay, fitsParty, nightDates } from "@/lib/availability";
 import { SMOOBU_APARTMENT_IDS, SMOOBU_CHANNEL_ID_DIRECT_WEBSITE } from "@/config/smoobu";
 import { createPaymentIntent } from "@/lib/stripe";
 import { getDbOrNull } from "@/lib/db/get-db";
@@ -14,35 +14,29 @@ import {
   balanceDue,
 } from "@/config/payments";
 
-function nightDates(arrival: string, departure: string): string[] {
-  const dates: string[] = [];
-  const cursor = new Date(`${arrival}T00:00:00Z`);
-  const end = new Date(`${departure}T00:00:00Z`);
-  while (cursor < end) {
-    dates.push(cursor.toISOString().slice(0, 10));
-    cursor.setUTCDate(cursor.getUTCDate() + 1);
-  }
-  return dates;
-}
-
 async function priceQuote(
   apartmentId: number,
   checkIn: string,
-  checkOut: string
+  checkOut: string,
+  guests: number
 ): Promise<{ undiscountedThb: number; totalThb: number } | { error: string }> {
   if (!SMOOBU_APARTMENT_IDS.includes(apartmentId as (typeof SMOOBU_APARTMENT_IDS)[number])) {
     return { error: "Unknown apartment" };
   }
+  if (!fitsParty(apartmentId, guests)) return { error: "Too many guests for this room" };
   const rates = await getRates({
     apartmentIds: [apartmentId],
     startDate: checkIn,
     endDate: checkOut,
   });
   const daily = rates[String(apartmentId)] ?? {};
-  const nightly: DailyRate[] = nightDates(checkIn, checkOut).map((d) => daily[d] ?? {});
-  if (nightly.length === 0) return { error: "Empty stay" };
-  if (!nightly.every((r) => r.available === 1)) return { error: "Apartment unavailable" };
-  const undiscounted = nightly.reduce((sum, r) => sum + (r.price ?? 0), 0);
+  const stay = checkStay(daily, nightDates(checkIn, checkOut));
+  if (!stay.ok) {
+    return {
+      error: stay.reason === "minStay" ? "Minimum stay not met" : "Apartment unavailable",
+    };
+  }
+  const undiscounted = stay.total;
   if (undiscounted <= 0) return { error: "Could not price stay" };
   // totalThb already includes the direct-website discount; this is the figure
   // used for Stripe deposit math and stored as totalPrice in D1/Smoobu.
@@ -103,7 +97,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   let totalThb: number;
   let undiscountedThb: number;
   try {
-    const quote = await priceQuote(parsed.apartmentId, parsed.checkIn, parsed.checkOut);
+    const quote = await priceQuote(
+      parsed.apartmentId,
+      parsed.checkIn,
+      parsed.checkOut,
+      parsed.adults + parsed.children
+    );
     if ("error" in quote) {
       return NextResponse.json({ error: quote.error }, { status: 409 });
     }

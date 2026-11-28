@@ -5,6 +5,7 @@ import { sendOwnerEmail, bookingOwnerEmail, captureFailureOwnerEmail } from "@/l
 import { sendBookingConfirmation } from "@/lib/guest-email";
 import { createReservation, SmoobuError } from "@/lib/smoobu";
 import { ROOM_TO_APARTMENT_ID, SMOOBU_CHANNEL_ID_DIRECT_WEBSITE } from "@/config/smoobu";
+import { fitsParty } from "@/lib/availability";
 import { getDbOrNull } from "@/lib/db/get-db";
 import { bookings } from "@/db/schema";
 import { retrievePaymentIntent, capturePaymentIntent, cancelPaymentIntent } from "@/lib/stripe";
@@ -57,6 +58,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const apartmentId = parsed.apartmentId ?? ROOM_TO_APARTMENT_ID[parsed.roomId];
   if (!apartmentId) {
     return NextResponse.json({ error: "Unknown room" }, { status: 400 });
+  }
+  if (!fitsParty(apartmentId, parsed.adults + parsed.children)) {
+    return NextResponse.json({ error: "Too many guests for this room" }, { status: 400 });
   }
 
   // Stripe authorization must already be in place. We check status, match the
@@ -199,6 +203,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const ROOM_LABELS: Record<string, string> = {
+    villa: "Entire Villa",
     cosy: "Cosy Room",
     deluxe: "Deluxe Room",
     family: "Family Room",

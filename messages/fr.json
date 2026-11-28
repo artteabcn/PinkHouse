@@ -44,6 +44,7 @@
     "subtitle": "Notre maison d'hôtes intime ne compte que six chambres soigneusement conçues, offrant un cadre chaleureux et paisible où chaque voyageur bénéficie d'une attention personnalisée. Chaque chambre est aménagée avec soin pour allier confort, style et l'esprit décontracté de la vie insulaire.",
     "perNight": "/ nuit",
     "from": "À partir de",
+    "priceOnDates": "Le prix dépend de vos dates",
     "guests": "personnes",
     "book": "Réserver cette chambre",
     "cta": "Vérifier les disponibilités",
@@ -80,6 +81,16 @@
         "currency": "THB",
         "maxGuests": 3,
         "beds": "1 lit king + 1 lit simple",
+        "view": "Vue jardin & piscine"
+      },
+      {
+        "id": "villa",
+        "name": "Villa entière",
+        "description": "Toute la Pink House rien que pour votre groupe : six chambres et six salles de bain, jusqu'à 14 personnes, avec la piscine et le jardin. Idéale pour les familles et les amis qui voyagent ensemble.",
+        "price": 0,
+        "currency": "THB",
+        "maxGuests": 14,
+        "beds": "6 lits king + 2 lits simples",
         "view": "Vue jardin & piscine"
       }
     ]
