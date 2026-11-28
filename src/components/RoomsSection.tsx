@@ -3,6 +3,8 @@ import { getTranslations, getLocale } from "next-intl/server";
 import { BedDouble, Users, Eye } from "lucide-react";
 import { getImageUrl, getImage } from "@/lib/content";
 import RoomImageCarousel from "@/components/RoomImageCarousel";
+import { roomFallbackImage } from "@/config/smoobu";
+import { cn } from "@/lib/utils";
 
 interface RoomItem {
   id: string;
@@ -23,7 +25,7 @@ export default async function RoomsSection(): Promise<React.JSX.Element> {
   const roomImageSets = await Promise.all(
     rooms.map(async (room) => {
       const [cover, extra1, extra2] = await Promise.all([
-        getImageUrl(`rooms.${room.id}.cover`, "/images/room.jpeg"),
+        getImageUrl(`rooms.${room.id}.cover`, roomFallbackImage(room.id)),
         getImage(`rooms.${room.id}.1`),
         getImage(`rooms.${room.id}.2`),
       ]);
@@ -49,9 +51,16 @@ export default async function RoomsSection(): Promise<React.JSX.Element> {
           {rooms.map((room, idx) => (
             <article
               key={room.id}
-              className="bg-brand-cream flex flex-col overflow-hidden rounded-2xl shadow-sm ring-1 ring-black/5"
+              className={cn(
+                "bg-brand-cream flex flex-col overflow-hidden rounded-2xl shadow-sm ring-1 ring-black/5",
+                // The whole house gets its own full-width row under the rooms.
+                room.id === "villa" &&
+                  "md:col-span-2 lg:col-span-3 lg:grid lg:grid-cols-2 lg:items-center"
+              )}
             >
-              <RoomImageCarousel images={roomImageSets[idx]} />
+              <div>
+                <RoomImageCarousel images={roomImageSets[idx]} />
+              </div>
 
               <div className="flex flex-1 flex-col p-7">
                 <h3 className="text-brand-ink font-serif text-2xl font-semibold">{room.name}</h3>
@@ -74,19 +83,23 @@ export default async function RoomsSection(): Promise<React.JSX.Element> {
                 <p className="text-brand-ink-soft mt-4 text-sm leading-6">{room.description}</p>
 
                 <div className="mt-6 flex items-center justify-between border-t border-gray-200/70 pt-5">
-                  <div>
-                    <span className="text-brand-ink-soft text-[11px] tracking-wider uppercase">
-                      {t("from")}
-                    </span>
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-brand-ink font-serif text-2xl font-semibold">
-                        {room.price.toLocaleString()}
+                  {Number(room.price) > 0 ? (
+                    <div>
+                      <span className="text-brand-ink-soft text-[11px] tracking-wider uppercase">
+                        {t("from")}
                       </span>
-                      <span className="text-brand-ink-soft text-xs">
-                        {room.currency} {t("perNight")}
-                      </span>
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="text-brand-ink font-serif text-2xl font-semibold">
+                          {Number(room.price).toLocaleString()}
+                        </span>
+                        <span className="text-brand-ink-soft text-xs">
+                          {room.currency} {t("perNight")}
+                        </span>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <p className="text-brand-ink-soft pr-4 text-sm">{t("priceOnDates")}</p>
+                  )}
                   <a href={`/${locale}/book`} className="btn-pill-primary">
                     {t("cta")}
                   </a>

@@ -231,6 +231,13 @@ export const IMAGE_SLOTS: ReadonlyArray<{
   { slot: "logo", label: "Logo", fallback: "/logo.png" },
   { slot: "hero.main", label: "Hero (homepage)", fallback: "/images/main.jpeg" },
   { slot: "about.main", label: "About section", fallback: "/images/main3.jpeg" },
+  {
+    slot: "rooms.villa.cover",
+    label: "Entire villa — photo 1 (cover)",
+    fallback: "/images/main4.jpeg",
+  },
+  { slot: "rooms.villa.1", label: "Entire villa — photo 2", fallback: "/images/main4.jpeg" },
+  { slot: "rooms.villa.2", label: "Entire villa — photo 3", fallback: "/images/main4.jpeg" },
   { slot: "rooms.cosy.cover", label: "Cosy room — photo 1 (cover)", fallback: "/images/room.jpeg" },
   { slot: "rooms.cosy.1", label: "Cosy room — photo 2", fallback: "/images/room.jpeg" },
   { slot: "rooms.cosy.2", label: "Cosy room — photo 3", fallback: "/images/room.jpeg" },

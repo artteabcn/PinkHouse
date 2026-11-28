@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MAX_PARTY_SIZE } from "@/config/smoobu";
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -11,8 +12,8 @@ export const BookingSchema = z
     apartmentId: z.coerce.number().int().positive().optional(),
     checkIn: z.string().regex(ISO_DATE, "Check-in must be YYYY-MM-DD"),
     checkOut: z.string().regex(ISO_DATE, "Check-out must be YYYY-MM-DD"),
-    adults: z.coerce.number().int().min(1).max(10).default(2),
-    children: z.coerce.number().int().min(0).max(10).default(0),
+    adults: z.coerce.number().int().min(1).max(MAX_PARTY_SIZE).default(2),
+    children: z.coerce.number().int().min(0).max(MAX_PARTY_SIZE).default(0),
     totalPrice: z.coerce.number().int().nonnegative().optional(),
     locale: z.string().min(2).max(5).default("en"),
     notes: z.string().optional(),
